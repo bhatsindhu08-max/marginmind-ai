@@ -41,19 +41,14 @@ export const DocumentUpload: React.FC = () => {
       formData.append('file', file);
       formData.append('document_type', documentType);
 
-      const token = localStorage.getItem('marginmind_token');
-      const response = await fetch('/api/v1/documents/upload', {
+      await apiRequest('/documents/upload', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
-
       await loadDocuments();
       if (fileInputRef.current) fileInputRef.current.value = '';
+      alert(`File "${file.name}" uploaded and parsed successfully!`);
     } catch (err: any) {
       alert('Document extraction failed: ' + err.message);
     } finally {

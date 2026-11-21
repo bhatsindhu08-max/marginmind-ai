@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { UserRole } from '../types';
+import { API_BASE } from '../api/client';
 import {
   Building,
   UserCheck,
@@ -29,7 +30,7 @@ export const Header: React.FC = () => {
       setDownloading(true);
       const endpoint = format === 'pdf' ? '/reports/export-pdf' : '/reports/export-excel';
       const token = localStorage.getItem('marginmind_token');
-      const res = await fetch(`/api/v1${endpoint}`, {
+      const res = await fetch(`${API_BASE}${endpoint}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Download, FileSpreadsheet, FileText, CheckCircle2, ShieldCheck, Database } from 'lucide-react';
+import { API_BASE } from '../api/client';
 
 export const Reports: React.FC = () => {
   const [downloading, setDownloading] = useState<boolean>(false);
@@ -12,7 +13,7 @@ export const Reports: React.FC = () => {
       const endpoint = format === 'pdf' ? '/reports/export-pdf' : '/reports/export-excel';
       const token = localStorage.getItem('marginmind_token');
 
-      const res = await fetch(`/api/v1${endpoint}`, {
+      const res = await fetch(`${API_BASE}${endpoint}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });

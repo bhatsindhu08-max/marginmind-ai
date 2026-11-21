@@ -33,9 +33,11 @@ export const DecisionCentre: React.FC = () => {
       setLoading(true);
       const data = await apiRequest<PreparedDecision[]>('/decisions/pending');
       setDecisions(data);
-      if (data.length > 0 && !selectedDecision) {
+      if (data.length > 0) {
         setSelectedDecision(data[0]);
         setEditPrice(data[0].financial_impact_json.suggested_price || 0);
+      } else {
+        setSelectedDecision(null);
       }
     } catch (e) {
       console.error('Failed to load decisions:', e);
@@ -67,6 +69,7 @@ export const DecisionCentre: React.FC = () => {
 
       alert(`Decision #${selectedDecision.id} successfully recorded as ${action}!`);
       setComments('');
+      setSelectedDecision(null);
       await loadDecisions();
     } catch (e: any) {
       alert('Action failed: ' + e.message);

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { apiRequest } from '../api/client';
 import { DecisionApproval } from '../types';
 import { StatusBadge } from '../components/StatusBadge';
-import { History, ShieldCheck, Clock, User, MessageSquare } from 'lucide-react';
+import { History, ShieldCheck, Clock, User, MessageSquare, RefreshCw } from 'lucide-react';
 
 export const ApprovalHistory: React.FC = () => {
   const [history, setHistory] = useState<DecisionApproval[]>([]);
@@ -38,18 +38,27 @@ export const ApprovalHistory: React.FC = () => {
   return (
     <div className="p-8 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="pb-6 border-b border-slate-800">
-        <div className="flex items-center space-x-2">
-          <h1 className="text-2xl font-bold text-slate-100 tracking-tight">
-            Governance & Decision Audit Log
-          </h1>
-          <span className="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 font-mono">
-            Immutable Ledger
-          </span>
+      <div className="pb-6 border-b border-slate-800 flex items-center justify-between">
+        <div>
+          <div className="flex items-center space-x-2">
+            <h1 className="text-2xl font-bold text-slate-100 tracking-tight">
+              Governance & Decision Audit Log
+            </h1>
+            <span className="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 font-mono">
+              Immutable Ledger
+            </span>
+          </div>
+          <p className="text-xs text-slate-400 mt-1">
+            Complete verifiable audit history of authorized human approvals, edits, and rejections.
+          </p>
         </div>
-        <p className="text-xs text-slate-400 mt-1">
-          Complete verifiable audit history of authorized human approvals, edits, and rejections.
-        </p>
+        <button
+          onClick={loadHistory}
+          className="flex items-center space-x-2 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs rounded-lg border border-slate-800 transition"
+        >
+          <RefreshCw className="w-3.5 h-3.5 text-slate-400" />
+          <span>Refresh Audit Trail</span>
+        </button>
       </div>
 
       {history.length === 0 ? (
@@ -88,7 +97,7 @@ export const ApprovalHistory: React.FC = () => {
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       <div className="font-medium text-slate-200">{app.user_name}</div>
                       <div className="text-[10px] text-emerald-400 capitalize font-mono">
-                        {app.user_role.replace('_', ' ')}
+                        {(app.user_role || 'business_owner').replace('_', ' ')}
                       </div>
                     </td>
                     <td className="py-3.5 px-4 text-center">
