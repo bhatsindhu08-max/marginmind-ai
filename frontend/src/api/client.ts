@@ -1,4 +1,9 @@
-const API_BASE = '/api/v1';
+const isLocal = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+const API_BASE = 
+  (import.meta as any).env?.VITE_API_URL || 
+  (isLocal ? `http://${window.location.hostname}:8000/api/v1` : '/api/v1');
 
 export async function apiRequest<T>(
   endpoint: string,
@@ -20,19 +25,26 @@ export async function apiRequest<T>(
     headers,
   });
 
-  if (response.status === 401) {
+  if (response.status === 401 && !endpoint.includes('/auth/login')) {
     localStorage.removeItem('marginmind_token');
     window.location.hash = '#login';
     throw new Error('Session expired. Please log in again.');
   }
 
   if (!response.ok) {
-    let errorDetail = 'API request failed';
+    let errorDetail = `Request failed with status ${response.status}`;
     try {
-      const errJson = await response.json();
-      errorDetail = errJson.detail || errorDetail;
+      const text = await response.text();
+      try {
+        const errJson = JSON.parse(text);
+        errorDetail = errJson.detail || errorDetail;
+      } catch {
+        if (text && text.length < 500) {
+          errorDetail = text;
+        }
+      }
     } catch {
-      errorDetail = await response.text();
+      // Stream consumed
     }
     throw new Error(errorDetail);
   }
