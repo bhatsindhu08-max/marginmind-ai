@@ -1,0 +1,95 @@
+Welcome to MarginMind AI—the financial intelligence and decision-preparation operating system designed specifically for manufacturing leaders.
+
+What MarginMind AI Solves for You
+
+Manufacturing profitability is constantly eroded by unpredictable external forces: raw material commodity spikes, fluctuating supplier quotes, rising local labor rates, and factory utility overheads.
+
+Standard ERP systems tell you what happened last month. MarginMind AI answers forward-looking business questions in real time: 
+1. **Should I accept this customer order?** *(OrderSure™)*
+2. **Should I increase my product selling price, and by how much?** *(MarginGuard™)*
+3. **When will I run out of critical raw materials?** *(SupplyShock™ Radar)*
+4. **Which products will become loss-making if steel, cotton, copper, or power prices surge +15%?** *(Macro Shock Simulator)*
+5. **What strategic decisions should I sign off today to protect my bottom line?** *(Decision Centre)*
+
+---
+
+## Step-by-Step Walkthrough
+
+### 1. Initial Onboarding & Plant Cost Configuration
+When you first log in:
+1. Navigate to **Settings** (`⌘K` → `Settings`).
+2. **Company & Industry:** Select your manufacturing vertical:
+   - **Metal and Steel Fabrication**
+   - **Textile & Garment Manufacturing**
+   - **Electronics Assembly & SMT**
+   - **Food Processing & Packaging**
+3. **Financial & OPEX Setup:**
+   - Enter your facility's monthly fixed overheads: **Monthly Rent**, **Water Bill**, **Electricity/Power**, and **Maintenance/Admin**.
+   - Enter your monthly production volume.
+   - *Result:* MarginMind automatically allocates a deterministic unit overhead across all your Bill of Materials (BOMs).
+
+---
+
+### 2. The Overview Command Centre
+The **Overview** tab is your executive dashboard:
+- **Portfolio Gross Margin Card:** Shows your blended profit margin compared to your corporate hurdle rate (e.g., target 25%, critical floor 16%).
+- **Inline Sparklines:** Displays 6-month historical margin trajectories for your product lines.
+- **Cost Distribution Donut:** Instantly breaks down your total cost into **Raw Materials (42%)**, **Direct Labour (26%)**, **Factory Overhead & Rent (18%)**, and **Power & Utilities (14%)**.
+- **External Commodity Tickers:** Live spot prices from the **World Bank Pink Sheet**, **RBI Forex (USD/INR)**, and **MoCI Wholesale Price Indices (WPI)**.
+
+---
+
+### 3. Intelligence: Continuous Surveillance
+The **Intelligence Workspace** continuously protects your profit margins:
+
+* **Margin Health (MarginGuard™):** 
+  - Identifies which product SKUs are in the *Healthy Zone (≥22%)*, *Warning Zone (16%–22%)*, or *Critical Breach (<16%)*.
+  - Displays a visual progress bar with the **Suggested Price Recovery** needed to restore your 25% target margin.
+* **Supply Risks (SupplyShock™ Radar):**
+  - Flags single-source supplier dependencies.
+  - Computes your **Days-of-Supply runway buffer** based on open customer orders (alerts when buffer is <15 days).
+* **Forecasting:**
+  - View multi-horizon fan charts for margins across **0–3 months (Tactical)**, **3–12 months (Budget)**, **1–3 years (Tooling)**, and **3–5 years (Strategic)** under Favourable, Base, and Stress conditions.
+* **Product Viability:**
+  - Calculates the exact monthly break-even unit volume and contribution margin for every product line.
+
+---
+
+### 4. Analysis & Simulation: Testing Decisions Before You Commit
+The **Analysis & Simulation Workspace** acts as your financial test-bench:
+
+* **OrderSure™ Gatekeeper:**
+  - Before signing a new customer purchase order, enter the **Product**, **Quantity**, and **Contract Price**.
+  - OrderSure stress-tests the order against current spot raw material prices and assigns a verdict: **ATTRACTIVE** (safe to sign), **VERIFY** (tight margin), or **RISKY** (loss-making).
+* **Pricing Simulator:**
+  - Drag the price slider (-30% to +50%) to see projected volume changes based on price elasticity of demand and the net annual profit impact.
+* **Economic Shock Simulator:**
+  - Select an external commodity (e.g., LME Aluminium or WPI Steel) and simulate a shock (e.g., `+15%`).
+  - The Knowledge Graph automatically propagates the shock through your raw materials, updates your BOMs, highlights which products breach their margin floor, and generates prepared decision proposals.
+
+---
+
+### 5. Decision Centre: Human-in-the-Loop Governance
+MarginMind AI **never executes price increases or cancels orders automatically**—it prepares evidence-backed proposals for your authorization:
+
+1. Click **Decision Centre** (displays an active badge when proposals are pending).
+2. Select a proposal from the queue (e.g., *"Price Revision for High-Tensile Flange"*).
+3. Review the complete **Evidence Dossier**:
+   - Why the decision was triggered (e.g., *Steel scrap price increased 14.8% on spot market*).
+   - Before vs. After financial numbers.
+   - Alternative options considered.
+4. **Take Action:**
+   - **Authorize Proposal:** Implements the recommended action into your ERP catalog.
+   - **Approve with Custom Price:** Override the selling price to match a customer negotiation.
+   - **Reject Proposal:** Retains existing contract terms.
+   - **Request Recalculation:** Re-runs the financial model under revised assumptions.
+5. Every action is recorded in an **Immutable Governance Audit Log** with timestamps and approver notes.
+
+---
+
+### 6. Document Intelligence & Instant Quick Exports
+* **AI Document OCR:** Go to **Business Data → Documents** and drag-and-drop supplier quotation PDFs or vendor invoices. MarginMind extracts line items, quantities, and prices automatically.
+* **Quick Dossier Export:** Click the **Quick Export** dropdown in the top header at any time to download:
+  - **Executive Margin Dossier (PDF):** A board-ready financial report summarizing portfolio margin risk.
+  - **Financial Telemetry Matrix (Excel):** Full spreadsheet with multi-tier BOM cost decompositions.
+* **Global Search (`⌘K` / `Ctrl+K`):** Press `⌘K` anywhere in the app to jump to any of the 19 financial tools instantly.
