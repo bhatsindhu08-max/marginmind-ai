@@ -156,31 +156,64 @@ class DocumentIntelligenceParser:
         except Exception as e:
             return {"success": False, "error": f"Failed to parse PDF: {str(e)}"}
 
-        # Extraction regex patterns for Quotations / Invoices
-        supplier_match = re.search(r"(?:From|Supplier|Vendor|Company):\s*([A-Za-z0-9\s.,&-]+)", full_text, re.IGNORECASE)
-        supplier_name = supplier_match.group(1).strip() if supplier_match else "Hindalco Metal Distributors"
-        supp_conf = 0.92 if supplier_match else 0.70
+        # Extraction patterns for Quotations / Invoices
+        supplier_match = re.search(r"(?:From|Supplier|Vendor|Company|M/s|Seller|Billed By):\s*([A-Za-z0-9\s.,&-]+)", full_text, re.IGNORECASE)
+        if supplier_match:
+            supplier_name = supplier_match.group(1).strip()
+            supp_conf = 0.92
+        else:
+            candidate_lines = [l.strip() for l in full_text.split("\n") if len(l.strip()) > 3 and not l.strip().startswith("---")]
+            supplier_name = candidate_lines[0] if candidate_lines else "Direct Supplier Partner"
+            supp_conf = 0.75
 
         # Price match
-        price_match = re.search(r"(?:Price|Rate|Total Amount|INR|USD)\s*[:=]?\s*([0-9,]+(?:\.[0-9]{2})?)", full_text, re.IGNORECASE)
-        unit_price = float(price_match.group(1).replace(",", "")) if price_match else 295.0
-        price_conf = 0.90 if price_match else 0.65
+        price_match = re.search(r"(?:Price|Rate|Unit Price|Amount|Total Amount|INR|₹|USD|\$)\s*[:=]?\s*([0-9,]+(?:\.[0-9]{2})?)", full_text, re.IGNORECASE)
+        unit_price = float(price_match.group(1).replace(",", "")) if price_match else 250.0
+        price_conf = 0.90 if price_match else 0.70
 
         # Quantity match
-        qty_match = re.search(r"(?:Quantity|Qty|MOQ|Weight)\s*[:=]?\s*([0-9,]+(?:\.[0-9]+)?)\s*(kg|metric_ton|ton|sheet|piece|nos)?", full_text, re.IGNORECASE)
-        qty = float(qty_match.group(1).replace(",", "")) if qty_match else 500.0
+        qty_match = re.search(r"(?:Quantity|Qty|MOQ|Weight|Volume|Units)\s*[:=]?\s*([0-9,]+(?:\.[0-9]+)?)\s*(kg|metric_ton|ton|sheet|piece|nos|metre|meter|mtr)?", full_text, re.IGNORECASE)
+        qty = float(qty_match.group(1).replace(",", "")) if qty_match else 100.0
         unit = qty_match.group(2) if (qty_match and qty_match.group(2)) else "kg"
-        qty_conf = 0.92 if qty_match else 0.68
+        qty_conf = 0.92 if qty_match else 0.70
 
         # Date match
-        date_match = re.search(r"(?:Date|Valid Till|Validity):\s*([0-9]{2,4}[-/][0-9]{1,2}[-/][0-9]{1,4})", full_text, re.IGNORECASE)
+        date_match = re.search(r"(?:Date|Valid Till|Validity|Dated):\s*([0-9]{2,4}[-/][0-9]{1,2}[-/][0-9]{1,4})", full_text, re.IGNORECASE)
         date_str = date_match.group(1) if date_match else datetime.now().strftime("%Y-%m-%d")
 
-        norm_mat, mat_conf = MaterialNormalizer.normalize_material_name("Aluminium Alloy Billet (6061-T6)")
+        # Dynamic Material / Product Name extraction from document text
+        material_match = re.search(r"(?:Material|Item Description|Description|Product|Part Name|Goods|Particulars|Item Name|Item):\s*([^\n\r,;:]+)", full_text, re.IGNORECASE)
+        raw_mat = None
+        if material_match:
+            raw_mat = material_match.group(1).strip()
+        else:
+            # Check for known canonical aliases inside full_text
+            for canonical, aliases in MaterialNormalizer.CANONICAL_ALIASES.items():
+                for alias in aliases:
+                    if re.search(r"\b" + re.escape(alias) + r"\b", full_text, re.IGNORECASE):
+                        raw_mat = canonical
+                        break
+                if raw_mat:
+                    break
+
+        if not raw_mat:
+            # Heuristic line scanner ignoring standard invoice metadata words
+            for line in full_text.split("\n"):
+                line_clean = line.strip()
+                if len(line_clean) > 3 and not any(kw in line_clean.lower() for kw in ["invoice", "quotation", "date", "page", "total", "amount", "phone", "email", "gstin", "tax", "gst", "tel", "fax", "subtotal", "bill to", "ship to", "terms"]):
+                    if re.search(r"[A-Za-z]{3,}", line_clean):
+                        raw_mat = line_clean
+                        break
+
+        if not raw_mat:
+            raw_mat = os.path.splitext(os.path.basename(file_path))[0].replace("_", " ").replace("-", " ").title()
+
+        norm_mat, mat_conf = MaterialNormalizer.normalize_material_name(raw_mat)
 
         record = {
             "supplier_name": supplier_name,
             "material_name": norm_mat,
+            "raw_material_name": raw_mat,
             "unit_price": unit_price,
             "quantity": qty,
             "unit": MaterialNormalizer.normalize_unit(unit),

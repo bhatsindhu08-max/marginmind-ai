@@ -5,7 +5,9 @@ import { Building2, Check, ArrowRight, ShieldCheck, Layers, Globe2 } from 'lucid
 export const Onboarding: React.FC = () => {
   const [templates, setTemplates] = useState<any[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<string>('metal_steel');
+  const [currentIndustry, setCurrentIndustry] = useState<string>('metal_steel');
   const [loading, setLoading] = useState<boolean>(true);
+  const [applying, setApplying] = useState<boolean>(false);
 
   useEffect(() => {
     loadTemplates();
@@ -14,12 +16,37 @@ export const Onboarding: React.FC = () => {
   const loadTemplates = async () => {
     try {
       setLoading(true);
-      const data = await apiRequest<any[]>('/auth/templates');
+      const [data, biz] = await Promise.all([
+        apiRequest<any[]>('/auth/templates'),
+        apiRequest<any>('/business/current').catch(() => null),
+      ]);
       setTemplates(data);
+      if (biz?.industry_type) {
+        setCurrentIndustry(biz.industry_type);
+        setSelectedTemplate(biz.industry_type);
+      }
     } catch (e) {
       console.error('Failed to load templates:', e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleApplyIndustry = async (templateId: string) => {
+    try {
+      setApplying(true);
+      await apiRequest('/business/current', {
+        method: 'PUT',
+        body: JSON.stringify({ industry_type: templateId }),
+      });
+      localStorage.setItem('marginmind_industry', templateId);
+      setCurrentIndustry(templateId);
+      alert(`Manufacturing industry updated! Switched to "${activeTemplate?.name || templateId}".`);
+      window.location.reload();
+    } catch (e: any) {
+      alert('Failed to update industry: ' + e.message);
+    } finally {
+      setApplying(false);
     }
   };
 
@@ -71,9 +98,16 @@ export const Onboarding: React.FC = () => {
             >
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-mono text-emerald-400 uppercase font-semibold">
-                    {tmpl.id}
-                  </span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs font-mono text-emerald-400 uppercase font-semibold">
+                      {tmpl.id}
+                    </span>
+                    {currentIndustry === tmpl.id && (
+                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-cyan-950 text-cyan-300 border border-cyan-800 font-mono">
+                        ACTIVE
+                      </span>
+                    )}
+                  </div>
                   {isSelected && <Check className="w-4 h-4 text-emerald-400" />}
                 </div>
                 <h3 className="text-sm font-bold text-slate-100">{tmpl.name}</h3>
@@ -136,6 +170,26 @@ export const Onboarding: React.FC = () => {
                 </div>
               </div>
             </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-4 border-t border-slate-800/80 gap-3">
+            <span className="text-xs text-slate-400 font-sans">
+              {currentIndustry === activeTemplate.id
+                ? '✓ This industry configuration is currently active for your enterprise.'
+                : `Switch enterprise schema to ${activeTemplate.name} to activate tailored benchmarks and margin thresholds.`}
+            </span>
+            <button
+              onClick={() => handleApplyIndustry(activeTemplate.id)}
+              disabled={applying || currentIndustry === activeTemplate.id}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 self-start sm:self-auto ${
+                currentIndustry === activeTemplate.id
+                  ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
+                  : 'bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-slate-950 shadow-glow-cyan'
+              }`}
+            >
+              <Check className="w-4 h-4" />
+              <span>{currentIndustry === activeTemplate.id ? 'Currently Active' : `Set as Active Industry`}</span>
+            </button>
           </div>
         </div>
       )}

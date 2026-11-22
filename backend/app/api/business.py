@@ -37,7 +37,24 @@ def update_business_settings(
     if update_data.name is not None:
         biz.name = update_data.name
     if update_data.industry_type is not None:
+        old_ind = biz.industry_type
         biz.industry_type = update_data.industry_type
+        if old_ind != update_data.industry_type:
+            from backend.app.models import Product
+            if db.query(Product).filter(Product.business_id == tenant_id).count() == 0:
+                norm_industry = update_data.industry_type.lower().strip()
+                if norm_industry in ["textile_garment", "textile_garments", "textile", "garment", "apparel"]:
+                    from backend.app.seeds.textile_demo import seed_textile_demonstration
+                    seed_textile_demonstration(db, business_id=biz.id)
+                elif norm_industry in ["electronics_assembly", "electronics", "smt"]:
+                    from backend.app.seeds.electronics_demo import seed_electronics_demonstration
+                    seed_electronics_demonstration(db, business_id=biz.id)
+                elif norm_industry in ["food_processing", "food", "agri"]:
+                    from backend.app.seeds.food_demo import seed_food_demonstration
+                    seed_food_demonstration(db, business_id=biz.id)
+                elif norm_industry in ["metal_steel", "metal", "steel"]:
+                    from backend.app.seeds.metal_demo import seed_metal_demonstration
+                    seed_metal_demonstration(db, business_id=biz.id)
     if update_data.currency is not None:
         biz.currency = update_data.currency
     if update_data.address is not None:

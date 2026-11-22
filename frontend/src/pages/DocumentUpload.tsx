@@ -12,8 +12,11 @@ export const DocumentUpload: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Correction state
+  const [editMaterialName, setEditMaterialName] = useState<string>('');
+  const [editSupplierName, setEditSupplierName] = useState<string>('');
   const [editPrice, setEditPrice] = useState<number>(0);
   const [editQty, setEditQty] = useState<number>(0);
+  const [editUnit, setEditUnit] = useState<string>('kg');
 
   useEffect(() => {
     loadDocuments();
@@ -61,8 +64,11 @@ export const DocumentUpload: React.FC = () => {
       const currentRecords = selectedDoc?.extracted_data_json?.records || [];
       const updatedRecords = currentRecords.map((r: any) => ({
         ...r,
-        unit_price: editPrice || r.unit_price,
-        quantity: editQty || r.quantity,
+        material_name: editMaterialName || r.material_name,
+        supplier_name: editSupplierName || r.supplier_name,
+        unit_price: Number(editPrice) || r.unit_price,
+        quantity: Number(editQty) || r.quantity,
+        unit: editUnit || r.unit || 'kg',
       }));
 
       await apiRequest(`/documents/${docId}/correct`, {
@@ -73,7 +79,7 @@ export const DocumentUpload: React.FC = () => {
         }),
       });
 
-      alert('Document records verified and confirmed into financial ledger!');
+      alert(`Document verified! Master record for "${editMaterialName}" updated, and an actionable proposal was sent to the Decision Centre.`);
       setSelectedDoc(null);
       await loadDocuments();
     } catch (e: any) {
@@ -210,8 +216,11 @@ export const DocumentUpload: React.FC = () => {
                           setSelectedDoc(doc);
                           const firstRec = doc.extracted_data_json?.records?.[0];
                           if (firstRec) {
+                            setEditMaterialName(firstRec.material_name || firstRec.raw_material_name || '');
+                            setEditSupplierName(firstRec.supplier_name || '');
                             setEditPrice(firstRec.unit_price || 0);
                             setEditQty(firstRec.quantity || 0);
+                            setEditUnit(firstRec.unit || 'kg');
                           }
                         }}
                         className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded border border-slate-700 transition"
@@ -275,16 +284,32 @@ export const DocumentUpload: React.FC = () => {
                     {(selectedDoc.extracted_data_json?.records || []).map((r: any, idx: number) => (
                       <React.Fragment key={idx}>
                         <tr>
-                          <td className="py-2 px-3 font-sans">Material Name</td>
-                          <td className="py-2 px-3 font-bold text-slate-100">{r.material_name}</td>
+                          <td className="py-2 px-3 font-sans">Material / Item Name</td>
+                          <td className="py-2 px-3 font-bold text-slate-100">{r.material_name || r.raw_material_name}</td>
                           <td className="py-2 px-3 text-emerald-400">95% (Normalized)</td>
-                          <td className="py-2 px-3 text-slate-300">{r.material_name}</td>
+                          <td className="py-2 px-3">
+                            <input
+                              type="text"
+                              value={editMaterialName}
+                              onChange={(e) => setEditMaterialName(e.target.value)}
+                              placeholder="e.g. Cotton Grey Fabric"
+                              className="bg-slate-950 border border-slate-700 focus:border-cyan-400 rounded px-2 py-1 text-xs font-sans text-cyan-300 w-full"
+                            />
+                          </td>
                         </tr>
                         <tr>
-                          <td className="py-2 px-3 font-sans">Supplier Name</td>
-                          <td className="py-2 px-3 text-slate-100">{r.supplier_name || 'Hindalco'}</td>
+                          <td className="py-2 px-3 font-sans">Supplier / Vendor</td>
+                          <td className="py-2 px-3 text-slate-100">{r.supplier_name || 'Direct Supplier'}</td>
                           <td className="py-2 px-3 text-emerald-400">92% Match</td>
-                          <td className="py-2 px-3 text-slate-300">{r.supplier_name || 'Hindalco'}</td>
+                          <td className="py-2 px-3">
+                            <input
+                              type="text"
+                              value={editSupplierName}
+                              onChange={(e) => setEditSupplierName(e.target.value)}
+                              placeholder="Supplier Name"
+                              className="bg-slate-950 border border-slate-700 focus:border-cyan-400 rounded px-2 py-1 text-xs font-sans text-slate-200 w-full"
+                            />
+                          </td>
                         </tr>
                         <tr>
                           <td className="py-2 px-3 font-sans">Unit Price (₹)</td>
@@ -293,23 +318,33 @@ export const DocumentUpload: React.FC = () => {
                           <td className="py-2 px-3">
                             <input
                               type="number"
+                              step="any"
                               value={editPrice}
                               onChange={(e) => setEditPrice(parseFloat(e.target.value) || 0)}
-                              className="bg-slate-950 border border-slate-700 rounded px-2 py-0.5 text-xs font-mono text-emerald-400 w-24"
+                              className="bg-slate-950 border border-slate-700 focus:border-emerald-400 rounded px-2 py-1 text-xs font-mono text-emerald-400 w-28"
                             />
                           </td>
                         </tr>
                         <tr>
-                          <td className="py-2 px-3 font-sans">Quantity</td>
+                          <td className="py-2 px-3 font-sans">Quantity & Unit</td>
                           <td className="py-2 px-3 text-slate-100">{r.quantity} {r.unit}</td>
                           <td className="py-2 px-3 text-emerald-400">90% Match</td>
                           <td className="py-2 px-3">
-                            <input
-                              type="number"
-                              value={editQty}
-                              onChange={(e) => setEditQty(parseFloat(e.target.value) || 0)}
-                              className="bg-slate-950 border border-slate-700 rounded px-2 py-0.5 text-xs font-mono text-emerald-400 w-24"
-                            />
+                            <div className="flex items-center space-x-1.5">
+                              <input
+                                type="number"
+                                step="any"
+                                value={editQty}
+                                onChange={(e) => setEditQty(parseFloat(e.target.value) || 0)}
+                                className="bg-slate-950 border border-slate-700 focus:border-cyan-400 rounded px-2 py-1 text-xs font-mono text-slate-200 w-20"
+                              />
+                              <input
+                                type="text"
+                                value={editUnit}
+                                onChange={(e) => setEditUnit(e.target.value)}
+                                className="bg-slate-950 border border-slate-700 focus:border-cyan-400 rounded px-2 py-1 text-xs font-mono text-slate-300 w-16"
+                              />
+                            </div>
                           </td>
                         </tr>
                       </React.Fragment>

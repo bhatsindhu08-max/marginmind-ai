@@ -2,9 +2,10 @@ import os
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
+from datetime import datetime, timezone, timedelta
 from backend.app.core.config import settings
 from backend.app.core.database import get_db
-from backend.app.models import Document, Supplier, SupplierQuotation, Material
+from backend.app.models import Document, Supplier, SupplierQuotation, Material, PreparedDecision
 from backend.app.schemas.document import DocumentOut, DocumentCorrectionUpdate
 from backend.app.services.document_parser import DocumentIntelligenceParser
 from backend.app.api.deps import get_current_user, get_current_tenant
@@ -75,6 +76,83 @@ def correct_and_confirm_document(
     doc.extracted_data_json = data.corrected_data
     doc.status = "CONFIRMED" if data.confirm_and_apply else "EXTRACTED"
     doc.confidence_scores_json = {"overall": 1.0, "status": "Human Verified"}
+
+    if data.confirm_and_apply:
+        records = (data.corrected_data or {}).get("records", [])
+        for rec in records:
+            mat_name = rec.get("material_name", "").strip()
+            if not mat_name:
+                continue
+
+            unit_price = float(rec.get("unit_price", 0.0))
+            supp_name = rec.get("supplier_name", "Supplier").strip()
+            unit_val = rec.get("unit", "kg").strip()
+            qty_val = float(rec.get("quantity", 1.0))
+
+            # 1. Update or create Material record
+            mat = db.query(Material).filter(Material.business_id == tenant_id, Material.name == mat_name).first()
+            if mat:
+                mat.current_market_price = unit_price
+            else:
+                mat = Material(
+                    business_id=tenant_id,
+                    code=f"MAT-{int(datetime.now().timestamp()) % 10000}",
+                    name=mat_name,
+                    category="Raw Material",
+                    unit=unit_val,
+                    standard_cost=unit_price,
+                    current_market_price=unit_price,
+                    min_safety_stock=100.0,
+                    is_active=True
+                )
+                db.add(mat)
+                db.flush()
+
+            # 2. Update or create Supplier record
+            supp = db.query(Supplier).filter(Supplier.business_id == tenant_id, Supplier.name == supp_name).first()
+            if not supp:
+                supp = Supplier(
+                    business_id=tenant_id,
+                    code=f"SUPP-{int(datetime.now().timestamp()) % 1000}",
+                    name=supp_name,
+                    reliability_score=0.95
+                )
+                db.add(supp)
+                db.flush()
+
+            # 3. Create active Supplier Quotation record
+            quote = SupplierQuotation(
+                business_id=tenant_id,
+                supplier_id=supp.id,
+                material_id=mat.id,
+                quotation_ref=doc.filename,
+                quote_price=unit_price,
+                currency="INR",
+                min_order_qty=qty_val,
+                valid_from=datetime.now(timezone.utc),
+                valid_to=datetime.now(timezone.utc) + timedelta(days=90),
+                is_active=True
+            )
+            db.add(quote)
+
+            # 4. Generate Prepared Decision for Decision Centre
+            decision = PreparedDecision(
+                business_id=tenant_id,
+                decision_type="PRICE_ADJUSTMENT",
+                title=f"Cost Revision Proposal: {mat_name}",
+                summary=f"Supplier quote verified for '{mat_name}' at ₹{unit_price:.2f}/{unit_val} from {supp_name}.",
+                rationale=f"Document '{doc.filename}' verified new input cost. System recommends updating product costing and reviewing customer price recovery.",
+                financial_impact_json={
+                    "material_name": mat_name,
+                    "new_rate": unit_price,
+                    "supplier_name": supp_name,
+                    "quantity": qty_val
+                },
+                confidence_level=0.96,
+                risk_level="MEDIUM" if unit_price > 500 else "LOW",
+                status="PENDING_APPROVAL"
+            )
+            db.add(decision)
 
     db.commit()
     db.refresh(doc)

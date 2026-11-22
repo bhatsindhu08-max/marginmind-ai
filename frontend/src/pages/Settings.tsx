@@ -6,6 +6,7 @@ import { Settings as SettingsIcon, Save, Database, ShieldCheck, CheckCircle2, Gl
 export const Settings: React.FC = () => {
   const [business, setBusiness] = useState<Business | null>(null);
   const [name, setName] = useState('');
+  const [industryType, setIndustryType] = useState('metal_steel');
   const [currency, setCurrency] = useState('INR');
   const [targetMargin, setTargetMargin] = useState<number>(25.0);
   const [criticalThreshold, setCriticalThreshold] = useState<number>(16.0);
@@ -33,6 +34,7 @@ export const Settings: React.FC = () => {
       const biz = await apiRequest<Business>('/business/current');
       setBusiness(biz);
       setName(biz.name);
+      setIndustryType(biz.industry_type || 'metal_steel');
       setCurrency(biz.currency);
       setAddress(biz.address || '');
       setTargetMargin(biz.settings_json?.default_target_margin || 25.0);
@@ -68,6 +70,7 @@ export const Settings: React.FC = () => {
         method: 'PUT',
         body: JSON.stringify({
           name,
+          industry_type: industryType,
           currency,
           address,
           settings_json: {
@@ -78,6 +81,8 @@ export const Settings: React.FC = () => {
           },
         }),
       });
+      localStorage.setItem('marginmind_industry', industryType);
+      localStorage.setItem('marginmind_biz', name);
       setSavedSuccess(true);
       setTimeout(() => setSavedSuccess(false), 3000);
     } catch (e: any) {
@@ -175,12 +180,16 @@ export const Settings: React.FC = () => {
             </div>
             <div>
               <label className="text-slate-300 font-medium block mb-1">Manufacturing Industry</label>
-              <input
-                type="text"
-                disabled
-                value="Metal and Steel Manufacturing"
-                className="w-full bg-slate-950/60 border border-slate-800 rounded-lg p-2.5 text-slate-400"
-              />
+              <select
+                value={industryType}
+                onChange={(e) => setIndustryType(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 focus:border-cyan-400 rounded-lg p-2.5 text-slate-100 font-sans"
+              >
+                <option value="metal_steel">Metal and Steel Manufacturing</option>
+                <option value="textile_garment">Textile & Garment Manufacturing (Apparel / Cloth)</option>
+                <option value="electronics_assembly">Electronics Assembly & SMT</option>
+                <option value="food_processing">Food Processing & Packaging</option>
+              </select>
             </div>
           </div>
 
