@@ -6,7 +6,6 @@ import { Header } from './components/Header';
 import { CommandPalette } from './components/CommandPalette';
 import { Dashboard } from './pages/Dashboard';
 import { IntelligenceWorkspace } from './workspaces/IntelligenceWorkspace';
-import { AnalysisWorkspace } from './workspaces/AnalysisWorkspace';
 import { BusinessDataWorkspace } from './workspaces/BusinessDataWorkspace';
 import { SettingsWorkspace } from './workspaces/SettingsWorkspace';
 import { Login } from './pages/Login';
@@ -14,13 +13,12 @@ import { Login } from './pages/Login';
 const MainLayout: React.FC = () => {
   const { isAuthenticated } = useAuth();
 
-  // Exactly 5 Workspaces: 'overview' | 'intelligence' | 'analysis' | 'data' | 'settings'
+  // Exactly 4 Workspaces: 'overview' | 'intelligence' | 'data' | 'settings'
   const [currentWorkspace, setCurrentWorkspace] = useState<string>('overview');
 
   // Internal tab state for each workspace
   const [workspaceTabs, setWorkspaceTabs] = useState<Record<string, string>>({
-    intelligence: 'margin',
-    analysis: 'orders',
+    intelligence: 'orders',
     data: 'products',
     settings: 'financial',
   });
@@ -36,22 +34,21 @@ const MainLayout: React.FC = () => {
       overview: { ws: 'overview', tab: 'dashboard' },
       dashboard: { ws: 'overview', tab: 'dashboard' },
 
-      // Intelligence Workspace
-      intelligence: { ws: 'intelligence', tab: subTab || workspaceTabs.intelligence || 'margin' },
+      // Unified Intelligence & Simulation Workspace
+      intelligence: { ws: 'intelligence', tab: subTab || workspaceTabs.intelligence || 'orders' },
+      ordersure: { ws: 'intelligence', tab: 'orders' },
+      orders: { ws: 'intelligence', tab: 'orders' },
+      analysis: { ws: 'intelligence', tab: subTab || 'orders' },
       marginguard: { ws: 'intelligence', tab: 'margin' },
       margin: { ws: 'intelligence', tab: 'margin' },
+      shocks: { ws: 'intelligence', tab: 'shocks' },
+      scenarios: { ws: 'intelligence', tab: 'shocks' },
+      pricing: { ws: 'intelligence', tab: 'pricing' },
+      forecasting: { ws: 'intelligence', tab: 'forecasting' },
       supplyshock: { ws: 'intelligence', tab: 'supply' },
       supply: { ws: 'intelligence', tab: 'supply' },
-      forecasting: { ws: 'intelligence', tab: 'forecasting' },
-      viability: { ws: 'intelligence', tab: 'viability' },
       market: { ws: 'intelligence', tab: 'market' },
-
-      // Analysis & Simulation Workspace
-      analysis: { ws: 'analysis', tab: subTab || workspaceTabs.analysis || 'orders' },
-      ordersure: { ws: 'analysis', tab: 'orders' },
-      orders: { ws: 'analysis', tab: 'orders' },
-      pricing: { ws: 'analysis', tab: 'pricing' },
-      scenarios: { ws: 'analysis', tab: 'scenarios' },
+      viability: { ws: 'intelligence', tab: 'viability' },
 
       // Business Data Workspace
       data: { ws: 'data', tab: subTab || workspaceTabs.data || 'products' },
@@ -61,10 +58,10 @@ const MainLayout: React.FC = () => {
       documents: { ws: 'data', tab: 'documents' },
       reports: { ws: 'data', tab: 'reports' },
 
-      // Redirect any legacy Decision Centre links seamlessly to Analysis / OrderSure
-      decisions: { ws: 'analysis', tab: 'orders' },
-      approvals: { ws: 'analysis', tab: 'orders' },
-      history: { ws: 'analysis', tab: 'orders' },
+      // Redirect any legacy Decision Centre links seamlessly to Intelligence / OrderSure
+      decisions: { ws: 'intelligence', tab: 'orders' },
+      approvals: { ws: 'intelligence', tab: 'orders' },
+      history: { ws: 'intelligence', tab: 'orders' },
 
       // Settings Workspace
       settings: { ws: 'settings', tab: subTab || workspaceTabs.settings || 'financial' },
@@ -106,13 +103,6 @@ const MainLayout: React.FC = () => {
           <IntelligenceWorkspace
             initialTab={workspaceTabs.intelligence}
             onTabChange={(tab) => setWorkspaceTab('intelligence', tab)}
-          />
-        );
-      case 'analysis':
-        return (
-          <AnalysisWorkspace
-            initialTab={workspaceTabs.analysis}
-            onTabChange={(tab) => setWorkspaceTab('analysis', tab)}
             onNavigateGlobal={handleGlobalNavigate}
           />
         );
@@ -137,7 +127,7 @@ const MainLayout: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-slate-950 text-slate-100 font-sans">
-      {/* Exactly 5 Primary Workspaces Sidebar */}
+      {/* Exactly 4 Primary Workspaces Sidebar */}
       <Sidebar
         currentWorkspace={currentWorkspace}
         onSelectWorkspace={(ws) => handleGlobalNavigate(ws)}

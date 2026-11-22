@@ -1,19 +1,33 @@
 import React, { useState, useEffect } from 'react';
+import { OrderSure } from '../pages/OrderSure';
 import { MarginGuard } from '../pages/MarginGuard';
-import { SupplyShock } from '../pages/SupplyShock';
+import { ScenarioSimulator } from '../pages/ScenarioSimulator';
+import { PriceSimulation } from '../pages/PriceSimulation';
 import { Forecasting } from '../pages/Forecasting';
-import { ProductViability } from '../pages/ProductViability';
+import { SupplyShock } from '../pages/SupplyShock';
 import { MarketIntelligence } from '../pages/MarketIntelligence';
-import { ShieldAlert, Zap, TrendingUp, LineChart, Globe2 } from 'lucide-react';
+import { ProductViability } from '../pages/ProductViability';
+import {
+  ShieldCheck,
+  ShieldAlert,
+  Zap,
+  Sliders,
+  TrendingUp,
+  AlertTriangle,
+  Globe2,
+  LineChart,
+} from 'lucide-react';
 
 interface IntelligenceWorkspaceProps {
   initialTab?: string;
   onTabChange?: (tab: string) => void;
+  onNavigateGlobal?: (destination: string, subTab?: string) => void;
 }
 
 export const IntelligenceWorkspace: React.FC<IntelligenceWorkspaceProps> = ({
-  initialTab = 'margin',
+  initialTab = 'orders',
   onTabChange,
+  onNavigateGlobal,
 }) => {
   const [activeTab, setActiveTab] = useState<string>(initialTab);
 
@@ -30,39 +44,60 @@ export const IntelligenceWorkspace: React.FC<IntelligenceWorkspaceProps> = ({
 
   const tabs = [
     {
-      id: 'margin',
-      label: 'Margin Health',
-      sublabel: 'MarginGuard',
-      icon: ShieldAlert,
-      description: 'Continuous portfolio margin tracking, erosion detection & price recovery',
+      id: 'orders',
+      label: 'Order Feasibility',
+      sublabel: 'OrderSure',
+      icon: ShieldCheck,
+      description: 'Stress-test incoming and open customer purchase orders against spot delivery costs & runway',
     },
     {
-      id: 'supply',
-      label: 'Supply Risks',
-      sublabel: 'SupplyShock',
+      id: 'margin',
+      label: 'Margin Surveillance',
+      sublabel: 'MarginGuard',
+      icon: ShieldAlert,
+      description: 'Continuous portfolio margin tracking, cost breakdown, erosion detection & price recovery',
+    },
+    {
+      id: 'shocks',
+      label: 'What-If Shocks',
+      sublabel: 'Macro Stress',
       icon: Zap,
-      description: 'Single-source dependency, inventory run-out buffers & disruption radar',
+      description: 'Simulate tariff changes, energy spikes, wage hikes, and commodity price surges across products',
+    },
+    {
+      id: 'pricing',
+      label: 'Pricing Simulator',
+      sublabel: 'Elasticity Engine',
+      icon: Sliders,
+      description: 'Analyze volume trade-offs, price elasticity curves and profit-maximizing price points',
     },
     {
       id: 'forecasting',
-      label: 'Forecasting',
+      label: 'Cost Forecasting',
       sublabel: 'Multi-Horizon',
       icon: TrendingUp,
-      description: 'Econometric projections across 4 time horizons and 3 economic scenarios',
+      description: 'Econometric projections across 4 time horizons and 3 economic inflation scenarios',
     },
     {
-      id: 'viability',
-      label: 'Product Viability',
-      sublabel: 'Lifecycle',
-      icon: LineChart,
-      description: 'Contribution margins, break-even analysis & continue/discontinue pathways',
+      id: 'supply',
+      label: 'Supply Risk Radar',
+      sublabel: 'SupplyShock',
+      icon: AlertTriangle,
+      description: 'Single-source dependency, inventory run-out buffers, alternate quotes & disruption radar',
     },
     {
       id: 'market',
       label: 'Market Signals',
-      sublabel: 'Indices & Macro',
+      sublabel: 'Commodity Indices',
       icon: Globe2,
-      description: 'Official commodity benchmarks, Pink Sheet, WPI indices & RBI forex rates',
+      description: 'Official commodity benchmarks (MCX, LME, World Bank Pink Sheet) and WPI inflation feeds',
+    },
+    {
+      id: 'viability',
+      label: 'Break-Even Economics',
+      sublabel: 'Unit Economics',
+      icon: LineChart,
+      description: 'Contribution margins, break-even unit volumes & product lifecycle pathways',
     },
   ];
 
@@ -75,14 +110,14 @@ export const IntelligenceWorkspace: React.FC<IntelligenceWorkspaceProps> = ({
             <div className="flex items-center space-x-2">
               <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-glow-cyan" />
               <h1 className="text-xl font-bold text-slate-100 tracking-tight font-sans">
-                Intelligence Workspace
+                Intelligence & Simulation Workspace
               </h1>
               <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 font-mono font-semibold">
-                Predictive & Surveillance
+                Predictive & Stress Engines
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-1">
-              Unified financial surveillance: margin erosion tracking, raw material supply shocks, forecasting, and macro market feeds.
+              Unified financial analysis: order viability gatekeeping, live product margin surveillance, what-if macro shocks, price elasticity, and market commodity telemetry.
             </p>
           </div>
         </div>
@@ -105,9 +140,13 @@ export const IntelligenceWorkspace: React.FC<IntelligenceWorkspaceProps> = ({
               >
                 <Icon className={`w-4 h-4 ${isActive ? 'text-cyan-400' : 'text-slate-500'}`} />
                 <span>{tab.label}</span>
-                <span className={`text-[9px] px-1.5 py-0.2 rounded font-mono ${
-                  isActive ? 'bg-cyan-950 text-cyan-300 border border-cyan-800' : 'bg-slate-850 text-slate-400'
-                }`}>
+                <span
+                  className={`text-[9px] px-1.5 py-0.2 rounded font-mono ${
+                    isActive
+                      ? 'bg-cyan-950 text-cyan-300 border border-cyan-800'
+                      : 'bg-slate-850 text-slate-400'
+                  }`}
+                >
                   {tab.sublabel}
                 </span>
               </button>
@@ -118,11 +157,18 @@ export const IntelligenceWorkspace: React.FC<IntelligenceWorkspaceProps> = ({
 
       {/* Tab Content Area */}
       <div className="flex-1 p-6">
+        {activeTab === 'orders' && <OrderSure />}
         {activeTab === 'margin' && <MarginGuard />}
-        {activeTab === 'supply' && <SupplyShock />}
+        {activeTab === 'shocks' && (
+          <ScenarioSimulator
+            onNavigate={(dest) => (onNavigateGlobal ? onNavigateGlobal(dest) : undefined)}
+          />
+        )}
+        {activeTab === 'pricing' && <PriceSimulation />}
         {activeTab === 'forecasting' && <Forecasting />}
-        {activeTab === 'viability' && <ProductViability />}
+        {activeTab === 'supply' && <SupplyShock />}
         {activeTab === 'market' && <MarketIntelligence />}
+        {activeTab === 'viability' && <ProductViability />}
       </div>
     </div>
   );

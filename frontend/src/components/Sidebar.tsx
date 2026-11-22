@@ -2,7 +2,6 @@ import React from 'react';
 import {
   LayoutDashboard,
   Sparkles,
-  Calculator,
   Database,
   Settings,
   PanelLeftClose,
@@ -39,7 +38,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobile,
   onOpenSearch,
 }) => {
-  // Exactly 5 primary workspaces for single-owner manufacturing operations
+  // Exactly 4 primary workspaces for single-owner manufacturing operations
   const workspaces: WorkspaceItem[] = [
     {
       id: 'overview',
@@ -50,15 +49,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     {
       id: 'intelligence',
-      label: 'Intelligence',
+      label: 'Intelligence & Simulation',
       icon: Sparkles,
-      description: 'MarginGuard, SupplyShock, Forecasting, Viability & Market Feeds',
-    },
-    {
-      id: 'analysis',
-      label: 'Analysis & Simulation',
-      icon: Calculator,
-      description: 'OrderSure gatekeeper, Price Elasticity & Macro Shock Simulator',
+      description: 'OrderSure gatekeeper, MarginGuard, What-If shocks, Pricing elasticity & Market feeds',
     },
     {
       id: 'data',
