@@ -1,95 +1,204 @@
-Welcome to MarginMind AI—the financial intelligence and decision-preparation operating system designed specifically for manufacturing leaders.
+================================================================================
+MARGINMIND AI — COMPREHENSIVE BUSINESS OWNER USER GUIDE
+The Financial Intelligence & Predictive Operating System for Manufacturing
+================================================================================
 
-What MarginMind AI Solves for You
+Welcome to MarginMind AI. 
 
-Manufacturing profitability is constantly eroded by unpredictable external forces: raw material commodity spikes, fluctuating supplier quotes, rising local labor rates, and factory utility overheads.
+MarginMind AI is purpose-built for the single business owner and principal manufacturing operator. Unlike traditional ERPs that only tell you historical accounting numbers from last month, MarginMind AI is a predictive, real-time operating system that answers the core questions deciding your plant's profitability:
 
-Standard ERP systems tell you what happened last month. MarginMind AI answers forward-looking business questions in real time: 
-1. **Should I accept this customer order?** *(OrderSure™)*
-2. **Should I increase my product selling price, and by how much?** *(MarginGuard™)*
-3. **When will I run out of critical raw materials?** *(SupplyShock™ Radar)*
-4. **Which products will become loss-making if steel, cotton, copper, or power prices surge +15%?** *(Macro Shock Simulator)*
-5. **What strategic decisions should I sign off today to protect my bottom line?** *(Decision Centre)*
+1. "If I accept this customer purchase order, will I make profit or burn cash?"
+2. "How much money do I actually have to spend on Raw Materials, Direct Labour, Factory Rent, Power/Water, and Production Supplies?"
+3. "Do I have enough cash runway to complete this job without taking expensive debt?"
+4. "Should I keep this order in the long run if raw material prices rise, or should I drop/renegotiate it?"
+5. "What exact selling price should I quote to guarantee my 25% margin?"
 
----
+--------------------------------------------------------------------------------
+1. APPLICATION ARCHITECTURE: THE 4 CORE WORKSPACES
+--------------------------------------------------------------------------------
 
-## Step-by-Step Walkthrough
+MarginMind AI is structured into exactly 4 clean, dedicated workspaces in the left navigation sidebar:
 
-### 1. Initial Onboarding & Plant Cost Configuration
-When you first log in:
-1. Navigate to **Settings** (`⌘K` → `Settings`).
-2. **Company & Industry:** Select your manufacturing vertical:
-   - **Metal and Steel Fabrication**
-   - **Textile & Garment Manufacturing**
-   - **Electronics Assembly & SMT**
-   - **Food Processing & Packaging**
-3. **Financial & OPEX Setup:**
-   - Enter your facility's monthly fixed overheads: **Monthly Rent**, **Water Bill**, **Electricity/Power**, and **Maintenance/Admin**.
-   - Enter your monthly production volume.
-   - *Result:* MarginMind automatically allocates a deterministic unit overhead across all your Bill of Materials (BOMs).
+  [1. Overview]                    --> Your daily morning health cockpit & hero order viability evaluator.
+  [2. Intelligence & Simulation]   --> All predictive visuals: order gatekeeper, live margin surveillance, what-if macro shocks, pricing elasticity, cost forecasts, and market feeds.
+  [3. Business Data]               --> Your plant's master data: products catalog, BOM recipes, raw materials inventory, suppliers, document OCR, and export reports.
+  [4. Settings]                    --> Factory fixed overheads (monthly rent, power, water), hourly labour wages, and industry profile presets.
 
----
+Every action in MarginMind AI is direct and 1-click: no artificial approval bureaucracy or multi-step queues. When you decide to adjust a price or book an order, it updates your live catalog immediately.
 
-### 2. The Overview Command Centre
-The **Overview** tab is your executive dashboard:
-- **Portfolio Gross Margin Card:** Shows your blended profit margin compared to your corporate hurdle rate (e.g., target 25%, critical floor 16%).
-- **Inline Sparklines:** Displays 6-month historical margin trajectories for your product lines.
-- **Cost Distribution Donut:** Instantly breaks down your total cost into **Raw Materials (42%)**, **Direct Labour (26%)**, **Factory Overhead & Rent (18%)**, and **Power & Utilities (14%)**.
-- **External Commodity Tickers:** Live spot prices from the **World Bank Pink Sheet**, **RBI Forex (USD/INR)**, and **MoCI Wholesale Price Indices (WPI)**.
+--------------------------------------------------------------------------------
+2. STEP-BY-STEP SETUP & ONBOARDING
+--------------------------------------------------------------------------------
 
----
+### Step 2.1: Plant Fixed Overhead & Industry Configuration
+Before evaluating orders, input your real plant operational costs:
+1. Click [Settings] in the sidebar (or press ⌘K → Settings).
+2. Go to "Company & Industry" tab:
+   - Select your manufacturing vertical:
+     * Metal & Steel Fabrication (e.g. Forged Flanges, Shafts, Brackets)
+     * Textile & Garment Manufacturing (e.g. Cotton Twill Shirts, Denim, Knits)
+     * Electronics Assembly / SMT (e.g. Industrial Controller PCBAs, Inverters)
+     * Food Processing & Packaging (e.g. Refined Edible Oils, Flour, Pouches)
+3. Go to "Financial & OPEX" tab:
+   - Enter your facility's real monthly fixed overheads:
+     * Monthly Factory Rent (₹)
+     * Monthly Electricity & Power Bill (₹)
+     * Monthly Water Bill (₹)
+     * Maintenance & Factory Admin (₹)
+     * Standard Hourly Labour Rate (₹/hr)
+     * Target Corporate Hurdle Margin (default: 25%)
+     * Critical Margin Floor (default: 16%)
+   - MarginMind deterministically absorbs these facility fixed costs across your unit production volume so no product or order is ever evaluated with ₹0 overhead!
 
-### 3. Intelligence: Continuous Surveillance
-The **Intelligence Workspace** continuously protects your profit margins:
+--------------------------------------------------------------------------------
+3. MANAGING YOUR PLANT DATA (BUSINESS DATA WORKSPACE)
+--------------------------------------------------------------------------------
 
-* **Margin Health (MarginGuard™):** 
-  - Identifies which product SKUs are in the *Healthy Zone (≥22%)*, *Warning Zone (16%–22%)*, or *Critical Breach (<16%)*.
-  - Displays a visual progress bar with the **Suggested Price Recovery** needed to restore your 25% target margin.
-* **Supply Risks (SupplyShock™ Radar):**
-  - Flags single-source supplier dependencies.
-  - Computes your **Days-of-Supply runway buffer** based on open customer orders (alerts when buffer is <15 days).
-* **Forecasting:**
-  - View multi-horizon fan charts for margins across **0–3 months (Tactical)**, **3–12 months (Budget)**, **1–3 years (Tooling)**, and **3–5 years (Strategic)** under Favourable, Base, and Stress conditions.
-* **Product Viability:**
-  - Calculates the exact monthly break-even unit volume and contribution margin for every product line.
+The [Business Data] workspace stores your company's operational records:
 
----
+### 3.1 Products Catalog ([Business Data] -> Products)
+- View your finished goods, current selling prices, unit variable costs, and realized margins.
+- Click "+ Add Product":
+  * Enter Product Name and SKU.
+  * Enter Target Selling Price (₹).
+  * Enter Primary Raw Material Name (e.g. Steel Scrap / Cotton Yarn) and Unit Material Cost (₹).
+  * Enter Direct Labour Cost (₹) and Fixed Overhead Allocation (₹).
+  * Result: The product is created with accurate cost economics from day one—never ₹0!
+- Delete unwanted or test products anytime with the 1-click trash icon.
 
-### 4. Analysis & Simulation: Testing Decisions Before You Commit
-The **Analysis & Simulation Workspace** acts as your financial test-bench:
+### 3.2 Raw Materials & In-Hand Inventory ([Business Data] -> Materials & BOM)
+- View your raw materials list, current unit cost, stock in hand, and total in-stock inventory valuation.
+- Click "+ Add Raw Material":
+  * Enter Material Name and Category.
+  * Enter Current In-Stock Quantity (e.g. 5,000 kg).
+  * Enter Purchase Unit Rate (₹/kg or ₹/meter) and Minimum Reorder Level.
+- Delete or update materials with 1 click.
 
-* **OrderSure™ Gatekeeper:**
-  - Before signing a new customer purchase order, enter the **Product**, **Quantity**, and **Contract Price**.
-  - OrderSure stress-tests the order against current spot raw material prices and assigns a verdict: **ATTRACTIVE** (safe to sign), **VERIFY** (tight margin), or **RISKY** (loss-making).
-* **Pricing Simulator:**
-  - Drag the price slider (-30% to +50%) to see projected volume changes based on price elasticity of demand and the net annual profit impact.
-* **Economic Shock Simulator:**
-  - Select an external commodity (e.g., LME Aluminium or WPI Steel) and simulate a shock (e.g., `+15%`).
-  - The Knowledge Graph automatically propagates the shock through your raw materials, updates your BOMs, highlights which products breach their margin floor, and generates prepared decision proposals.
+### 3.3 Sourcing Partners & Vendor Quotations ([Business Data] -> Suppliers)
+- Maintain your supplier directory and active price quotes.
+- Click "+ Add Sourcing Partner":
+  * Enter Vendor Name and Contact.
+  * Enter Material Supplied (e.g. Aluminium Billet 6061-T6).
+  * Enter Quoted Rate / Price (₹) and Unit.
+  * Enter Delivery Lead Time (days) and Reliability Rating.
+  * Result: MarginMind saves the supplier and immediately records an active quotation for your BOM calculations.
 
----
+### 3.4 Document OCR & Automated Extraction ([Business Data] -> Documents)
+- Drag and drop customer purchase orders, vendor invoices, quotation PDFs, or CSV/Excel files.
+- MarginMind AI extracts:
+  * Customer / Vendor Name
+  * Document / Order Reference Number
+  * Product / Material Description
+  * Quantity & Unit Price
+  * Delivery Horizon (Days)
+- Review the extracted fields in the live editable review form.
+- Direct 1-Click Action Buttons:
+  * [Book as Customer Order]: Immediately enters the contract into your Order Book.
+  * [Save to Products]: Adds the extracted item to your master products catalog.
+  * [Save Supplier Quotation]: Registers the vendor's price into your quotation history.
 
-### 5. Decision Centre: Human-in-the-Loop Governance
-MarginMind AI **never executes price increases or cancels orders automatically**—it prepares evidence-backed proposals for your authorization:
+--------------------------------------------------------------------------------
+4. THE DEEP ORDER VIABILITY EVALUATOR (CORE DECISION ENGINE)
+--------------------------------------------------------------------------------
 
-1. Click **Decision Centre** (displays an active badge when proposals are pending).
-2. Select a proposal from the queue (e.g., *"Price Revision for High-Tensile Flange"*).
-3. Review the complete **Evidence Dossier**:
-   - Why the decision was triggered (e.g., *Steel scrap price increased 14.8% on spot market*).
-   - Before vs. After financial numbers.
-   - Alternative options considered.
-4. **Take Action:**
-   - **Authorize Proposal:** Implements the recommended action into your ERP catalog.
-   - **Approve with Custom Price:** Override the selling price to match a customer negotiation.
-   - **Reject Proposal:** Retains existing contract terms.
-   - **Request Recalculation:** Re-runs the financial model under revised assumptions.
-5. Every action is recorded in an **Immutable Governance Audit Log** with timestamps and approver notes.
+Located prominently at the top of the [Overview] dashboard and inside [Intelligence & Simulation -> Order Feasibility]:
 
----
+Whenever a customer sends an RFQ or purchase order, enter the Product Name, Quantity, and Quoted Unit Price (or select an uploaded document). MarginMind instantly answers 3 critical questions:
 
-### 6. Document Intelligence & Instant Quick Exports
-* **AI Document OCR:** Go to **Business Data → Documents** and drag-and-drop supplier quotation PDFs or vendor invoices. MarginMind extracts line items, quantities, and prices automatically.
-* **Quick Dossier Export:** Click the **Quick Export** dropdown in the top header at any time to download:
-  - **Executive Margin Dossier (PDF):** A board-ready financial report summarizing portfolio margin risk.
-  - **Financial Telemetry Matrix (Excel):** Full spreadsheet with multi-tier BOM cost decompositions.
-* **Global Search (`⌘K` / `Ctrl+K`):** Press `⌘K` anywhere in the app to jump to any of the 19 financial tools instantly.
+### Question 1: Is It Profitable?
+- Shows Total Order Revenue, Total Production Cost, and Net Profit.
+- Shows Realized Gross Margin % compared against your 25% hurdle and 16% critical floor.
+- Clear status badge: PROFITABLE (Green) or LOSS-MAKING (Red).
+
+### Question 2: Money I Have vs. Money I Must Spend
+- Detailed spend decomposition across the 5 pillars of manufacturing:
+  1. Raw Material Spend (₹): Exact material required based on BOM recipes.
+  2. Direct Labour Spend (₹): Line worker wages and crew hours.
+  3. Factory Rent & Facilities (₹): Plant overhead allocation for the job.
+  4. Production Supply & Utilities (₹): Electricity, water, tooling consumables.
+  5. Time Required: Production days needed to complete the volume.
+- Cash Runway Health Check:
+  * Compares your available working capital against total cash outflow required.
+  * Tells you whether you can self-fund the job or risk cash-flow starvation before customer payment arrives.
+
+### Question 3: Future Sensitivity & Keep/Drop Advisory
+- What if raw material prices surge +10% to +18% on commodity markets?
+- The stress engine calculates your "Stressed Margin %" under inflation.
+- Actionable Strategic Advisory:
+  * KEEP_ORDER: Margin remains safe and resilient. Accept and book immediately.
+  * RENEGOTIATE_PRICE: Material inflation compresses margin below target. Click [Apply Profitable Price (₹...)] to instantly set the suggested price and re-test.
+  * KEEP_BUT_LOCK_SUPPLIER: Profitable now, but vulnerable to spot material spikes. Immediately lock fixed-price supplier contracts.
+  * DROP_ORDER: Negative contribution margin. Order burns cash. Reject or renegotiate before signing.
+
+--------------------------------------------------------------------------------
+5. INTELLIGENCE & SIMULATION WORKSPACE (THE VISUAL ENGINE)
+--------------------------------------------------------------------------------
+
+All predictive tools and visual simulations live together in [Intelligence & Simulation]:
+
+### Tab 1: Order Feasibility (OrderSure™)
+- The gatekeeper for your order book.
+- Table of all open customer contracts, agreed unit prices, current margins, stress margins, and keep/drop verdicts.
+- Delete completed or canceled orders with the 1-click trash button.
+
+### Tab 2: Margin Surveillance (MarginGuard™)
+- Visual charts tracking product margins across your entire portfolio.
+- Real-time margin variance waterfall: breaks down whether margin erosion is caused by Raw Materials, Labour, or Utilities.
+- Identifies which products breach the 16% critical floor and calculates the exact price recovery needed.
+
+### Tab 3: What-If Macro Economic Shocks
+- Select an external commodity benchmark (e.g. LME Aluminium, MCX Cotton, WPI Steel) and simulate an economic price shock (+5% to +35%).
+- The Knowledge Graph propagates the cost spike through your raw materials, recalculates every BOM, and shows you:
+  * Total Monthly Cost Increase across your factory.
+  * Number of products pushed into the loss-making zone.
+  * Recommended selling price revisions for affected items.
+
+### Tab 4: Pricing Simulator (Elasticity Engine)
+- Interactive price adjustment slider (-30% to +50%).
+- Microeconomic demand elasticity modeling: shows how raising or lowering price affects customer order volume, unit margins, and total annual plant profit.
+
+### Tab 5: Multi-Horizon Cost Forecasting
+- Predictive econometric projections across 4 business horizons:
+  * 0–3 Months (Tactical spot buying)
+  * 3–12 Months (Annual contract pricing)
+  * 1–3 Years (Tooling & equipment lifecycle)
+  * 3–5 Years (Long-term product portfolio viability)
+- Outputs Favourable, Base, and Stress scenario fans.
+
+### Tab 6: Supply Risk Radar (SupplyShock™)
+- Identifies materials dependent on a single supplier.
+- Computes Days-of-Supply inventory buffers based on open orders (alerts when buffer is <15 days).
+- Lists pre-qualified alternate suppliers with quoted prices and lead times.
+
+### Tab 7: Market Signals & Commodity Indices
+- Real-time feeds from official economic benchmarks:
+  * MCX (Multi Commodity Exchange of India)
+  * LME (London Metal Exchange)
+  * World Bank Commodity Pink Sheet
+  * MoCI Wholesale Price Index (WPI)
+  * RBI Foreign Exchange Reference Rates (USD/INR, EUR/INR)
+
+### Tab 8: Break-Even Economics
+- Fixed vs. Variable cost decomposition for every SKU.
+- Calculates exact monthly break-even unit volumes and unit contribution margins (Selling Price - Variable Costs).
+
+--------------------------------------------------------------------------------
+6. EXECUTIVE REPORTS & QUICK EXPORTS
+--------------------------------------------------------------------------------
+
+- Top Header Quick Export: Click [Quick Export] in the navigation header at any time:
+  * Executive Margin Dossier (PDF): Formal executive summary of plant margins, risk alerts, and order book economics.
+  * Financial Telemetry Matrix (Excel): Complete multi-tab spreadsheet with product BOM cost breakdowns, inventory levels, and supplier quotes.
+- Dedicated Reports Tab: Go to [Business Data] -> Reports to generate custom dossiers and audit logs.
+- Global Search (⌘K / Ctrl+K): Press ⌘K anywhere in the application to jump instantly to any tool, product, or simulator.
+
+--------------------------------------------------------------------------------
+7. SUMMARY CHECKLIST FOR THE NEW BUSINESS OWNER
+--------------------------------------------------------------------------------
+
+1. [x] Go to Settings -> Set Monthly Factory Rent, Electricity/Water bills, and Standard Labour wages.
+2. [x] Go to Business Data -> Products -> Add your main products with real material and labour costs.
+3. [x] Go to Business Data -> Materials -> Add key raw materials with current stock in hand.
+4. [x] Go to Business Data -> Suppliers -> Add your suppliers with their quoted unit rates.
+5. [x] Before accepting any customer order, run it through the Order Viability Evaluator on the Overview dashboard to confirm profit, cash runway, and future inflation safety!
+================================================================================
