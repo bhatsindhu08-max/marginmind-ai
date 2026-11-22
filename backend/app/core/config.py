@@ -32,10 +32,10 @@ class Settings(BaseSettings):
     DEMO_MODE_DEFAULT: bool = True
 
     # Document upload directory
-    UPLOAD_DIR: str = os.getenv(
-        "UPLOAD_DIR",
-        "/Users/sindhubhat/.gemini/antigravity/scratch/marginmind/uploads"
-    )
+UPLOAD_DIR: str = os.getenv(
+    "UPLOAD_DIR",
+    "/tmp/marginmind/uploads"
+)
     REPORTS_DIR: str = os.getenv(
         "REPORTS_DIR",
         "/Users/sindhubhat/.gemini/antigravity/scratch/marginmind/reports"
