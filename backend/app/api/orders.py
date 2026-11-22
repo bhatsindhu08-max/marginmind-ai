@@ -54,3 +54,29 @@ def update_customer_order(
     db.commit()
     db.refresh(order)
     return order
+
+
+@router.delete("/{order_id}")
+def delete_customer_order(
+    order_id: int,
+    tenant_id: int = Depends(get_current_tenant),
+    current_user = Depends(require_role([UserRole.FINANCE_MANAGER, UserRole.PRODUCTION_MANAGER])),
+    db: Session = Depends(get_db)
+):
+    """
+    Safely delete a customer commitment / order from the database.
+    """
+    order = db.query(CustomerOrder).filter(CustomerOrder.id == order_id, CustomerOrder.business_id == tenant_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    order_num = order.order_number
+    db.delete(order)
+    db.commit()
+
+    return {
+        "status": "success",
+        "message": f"Customer order '{order_num}' deleted successfully",
+        "order_id": order_id
+    }
+

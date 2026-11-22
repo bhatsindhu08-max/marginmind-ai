@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { apiRequest } from '../api/client';
 import { Product, ProductCostBreakdown } from '../types';
 import { StatusBadge } from '../components/StatusBadge';
-import { Package, Plus, Layers, DollarSign, ArrowRight, X } from 'lucide-react';
+import { Package, Plus, Layers, DollarSign, ArrowRight, X, Trash2 } from 'lucide-react';
 
 export const Products: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -116,6 +116,27 @@ export const Products: React.FC = () => {
     }
   };
 
+  const handleDeleteProduct = async (productId: number, productName: string, sku: string) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete product "${productName}" (${sku})?\n\nThis will permanently delete this product and all associated Bills of Materials, production costs, and order records.`
+      )
+    ) {
+      return;
+    }
+    try {
+      await apiRequest(`/products/${productId}`, {
+        method: 'DELETE',
+      });
+      if (selectedBreakdown?.product_id === productId) {
+        setSelectedBreakdown(null);
+      }
+      await loadProducts();
+    } catch (err: any) {
+      alert('Failed to delete product: ' + err.message);
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-8 flex items-center justify-center min-h-[60vh]">
@@ -191,12 +212,21 @@ export const Products: React.FC = () => {
                     <StatusBadge status={p.is_active ? 'HEALTHY' : 'CRITICAL'} />
                   </td>
                   <td className="py-3.5 px-4 text-right font-sans">
-                    <button
-                      onClick={() => loadCostBreakdown(p.id)}
-                      className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded border border-slate-700 transition"
-                    >
-                      Cost Breakdown
-                    </button>
+                    <div className="flex items-center justify-end space-x-1.5">
+                      <button
+                        onClick={() => loadCostBreakdown(p.id)}
+                        className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded border border-slate-700 transition"
+                      >
+                        Cost Breakdown
+                      </button>
+                      <button
+                        onClick={() => handleDeleteProduct(p.id, p.name, p.sku)}
+                        title={`Delete ${p.name}`}
+                        className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded border border-transparent hover:border-rose-500/30 transition"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -227,6 +257,20 @@ export const Products: React.FC = () => {
                   }`}
                 >
                   {isEditingCosts ? 'Back to View' : 'Adjust Wages & Line Costs'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleDeleteProduct(
+                      selectedBreakdown.product_id,
+                      selectedBreakdown.product_name,
+                      selectedBreakdown.sku
+                    );
+                  }}
+                  title="Delete this Product"
+                  className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg border border-slate-700/80 hover:border-rose-500/30 transition"
+                >
+                  <Trash2 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => {

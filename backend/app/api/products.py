@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 from backend.app.core.database import get_db
-from backend.app.models import Product, BOM, BOMItem, Material, ProductionCost
+from backend.app.models import Product, BOM, BOMItem, Material, ProductionCost, CustomerOrder, ForecastScenario
 from backend.app.schemas.product import (
     ProductOut, ProductCreate, ProductUpdate, ProductCostBreakdown,
     BOMCreate, BOMOut, ProductionCostCreate, ProductionCostOut
@@ -234,3 +234,60 @@ def update_product_production_costs(
 
     # Return refreshed cost breakdown
     return get_product_cost_breakdown(product_id=prod.id, tenant_id=tenant_id, db=db)
+
+
+@router.delete("/{product_id}")
+def delete_product(
+    product_id: int,
+    tenant_id: int = Depends(get_current_tenant),
+    current_user = Depends(require_role([UserRole.PRODUCTION_MANAGER, UserRole.FINANCE_MANAGER])),
+    db: Session = Depends(get_db)
+):
+    """
+    Safely delete a product and cascade remove its BOMs, BOM items,
+    production costs, forecast scenarios, and associated customer commitments.
+    """
+    prod = db.query(Product).filter(Product.id == product_id, Product.business_id == tenant_id).first()
+    if not prod:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    prod_name = prod.name
+    prod_sku = prod.sku
+
+    # 1. Clean up associated forecast scenarios
+    db.query(ForecastScenario).filter(
+        ForecastScenario.product_id == prod.id,
+        ForecastScenario.business_id == tenant_id
+    ).delete(synchronize_session=False)
+
+    # 2. Clean up associated customer orders
+    db.query(CustomerOrder).filter(
+        CustomerOrder.product_id == prod.id,
+        CustomerOrder.business_id == tenant_id
+    ).delete(synchronize_session=False)
+
+    # 3. Clean up associated BOM items and BOM records
+    boms = db.query(BOM).filter(
+        BOM.product_id == prod.id,
+        BOM.business_id == tenant_id
+    ).all()
+    for b in boms:
+        db.query(BOMItem).filter(BOMItem.bom_id == b.id).delete(synchronize_session=False)
+        db.delete(b)
+
+    # 4. Clean up production costs
+    db.query(ProductionCost).filter(
+        ProductionCost.product_id == prod.id,
+        ProductionCost.business_id == tenant_id
+    ).delete(synchronize_session=False)
+
+    # 5. Delete product
+    db.delete(prod)
+    db.commit()
+
+    return {
+        "status": "success",
+        "message": f"Product '{prod_name}' ({prod_sku}) and associated records deleted successfully",
+        "product_id": product_id
+    }
+

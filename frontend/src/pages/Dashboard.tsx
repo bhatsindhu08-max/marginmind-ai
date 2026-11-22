@@ -25,6 +25,7 @@ import {
   ShieldCheck,
   Building2,
   RefreshCw,
+  Trash2,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -97,6 +98,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       console.error('Failed to load dashboard data:', e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteOrder = async (orderId: number, orderNumber: string) => {
+    if (!window.confirm(`Are you sure you want to delete order "${orderNumber}"?`)) {
+      return;
+    }
+    try {
+      await apiRequest(`/orders/${orderId}`, { method: 'DELETE' });
+      await loadDashboardData();
+    } catch (err: any) {
+      alert('Failed to delete order: ' + err.message);
     }
   };
 
@@ -600,6 +613,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                   <th className="py-3 px-3 text-right">Current Margin</th>
                   <th className="py-3 px-3 text-right">Stress Margin</th>
                   <th className="py-3 px-3 text-center">Verdict</th>
+                  <th className="py-3 px-3 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-slate-300 font-mono">
@@ -623,6 +637,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                     </td>
                     <td className="py-3 px-3 text-center font-sans">
                       <StatusBadge status={ord.recommendation} size="sm" />
+                    </td>
+                    <td className="py-3 px-3 text-right font-sans">
+                      <button
+                        onClick={() => handleDeleteOrder(ord.order_id, ord.order_number)}
+                        title={`Delete Order ${ord.order_number}`}
+                        className="p-1 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded transition"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </td>
                   </tr>
                 ))}

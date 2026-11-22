@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { apiRequest } from '../api/client';
 import { Product } from '../types';
 import { StatusBadge } from '../components/StatusBadge';
-import { CheckCircle2, AlertTriangle, XCircle, Calculator, PackageCheck, ArrowRight, ShieldCheck, Gauge } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, XCircle, Calculator, PackageCheck, ArrowRight, ShieldCheck, Gauge, Trash2, Plus, X } from 'lucide-react';
 
 export const OrderSure: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -13,6 +13,18 @@ export const OrderSure: React.FC = () => {
   const [evaluation, setEvaluation] = useState<any>(null);
   const [evaluating, setEvaluating] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+
+  // New Order Creation & Deletion States
+  const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
+  const [creatingOrder, setCreatingOrder] = useState<boolean>(false);
+  const [newOrderForm, setNewOrderForm] = useState({
+    order_number: `PO-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+    customer_name: 'Apex Industrial Client',
+    product_id: 1,
+    quantity: 100,
+    agreed_unit_price: 4200,
+    promised_delivery_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+  });
 
   useEffect(() => {
     loadData();
@@ -59,6 +71,47 @@ export const OrderSure: React.FC = () => {
     if (prod) {
       setAgreedPrice(prod.selling_price);
       runEvaluation(prodId, orderQuantity, prod.selling_price);
+    }
+  };
+
+  const handleDeleteOrder = async (orderId: number, orderNumber: string) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete customer order "${orderNumber}"?\n\nThis will remove the commitment from OrderSure Gatekeeper surveillance.`
+      )
+    ) {
+      return;
+    }
+    try {
+      await apiRequest(`/orders/${orderId}`, {
+        method: 'DELETE',
+      });
+      await loadData();
+    } catch (err: any) {
+      alert('Failed to delete order: ' + err.message);
+    }
+  };
+
+  const handleCreateOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setCreatingOrder(true);
+      await apiRequest('/orders', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...newOrderForm,
+          product_id: Number(newOrderForm.product_id),
+          quantity: Number(newOrderForm.quantity),
+          agreed_unit_price: Number(newOrderForm.agreed_unit_price),
+          promised_delivery_date: new Date(newOrderForm.promised_delivery_date).toISOString(),
+        }),
+      });
+      setShowCreateModal(false);
+      await loadData();
+    } catch (err: any) {
+      alert('Failed to book customer order: ' + err.message);
+    } finally {
+      setCreatingOrder(false);
     }
   };
 
@@ -208,6 +261,30 @@ export const OrderSure: React.FC = () => {
                 ))}
               </ul>
             </div>
+
+            <div className="pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <span className="text-xs text-slate-400 font-sans">
+                Satisfied with simulated margins? Book this RFQ directly into active commitments.
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setNewOrderForm({
+                    order_number: `PO-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+                    customer_name: 'RFQ Evaluated Client',
+                    product_id: selectedProductId,
+                    quantity: orderQuantity,
+                    agreed_unit_price: agreedPrice,
+                    promised_delivery_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                  });
+                  setShowCreateModal(true);
+                }}
+                className="px-3.5 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-semibold rounded-lg flex items-center space-x-1.5 transition self-start sm:self-auto"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Book Evaluated RFQ as Order</span>
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -226,8 +303,27 @@ export const OrderSure: React.FC = () => {
               Every committed customer purchase order evaluated against current spot commodity prices and +18% stress scenarios.
             </p>
           </div>
-          <div className="text-xs font-mono text-slate-400">
-            Active Orders: <span className="text-cyan-400 font-bold">{openOrders.length}</span>
+          <div className="flex items-center space-x-3">
+            <div className="text-xs font-mono text-slate-400">
+              Active Orders: <span className="text-cyan-400 font-bold">{openOrders.length}</span>
+            </div>
+            <button
+              onClick={() => {
+                setNewOrderForm({
+                  order_number: `PO-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+                  customer_name: 'Apex Industrial Client',
+                  product_id: selectedProductId,
+                  quantity: orderQuantity,
+                  agreed_unit_price: agreedPrice,
+                  promised_delivery_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                });
+                setShowCreateModal(true);
+              }}
+              className="px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-slate-950 text-xs font-semibold rounded-lg flex items-center space-x-1.5 shadow-glow-cyan transition"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Book New Order</span>
+            </button>
           </div>
         </div>
 
@@ -244,6 +340,7 @@ export const OrderSure: React.FC = () => {
                 <th className="py-3.5 px-4 text-right">Stress Margin</th>
                 <th className="py-3.5 px-4 text-right">Price Floor</th>
                 <th className="py-3.5 px-4 text-center">Status</th>
+                <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 text-slate-300 font-mono">
@@ -266,12 +363,145 @@ export const OrderSure: React.FC = () => {
                   <td className="py-3.5 px-4 text-center font-sans">
                     <StatusBadge status={ord.recommendation} size="sm" />
                   </td>
+                  <td className="py-3.5 px-4 text-right font-sans">
+                    <button
+                      onClick={() => handleDeleteOrder(ord.order_id, ord.order_number)}
+                      title={`Delete Order ${ord.order_number}`}
+                      className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg border border-transparent hover:border-rose-500/30 transition inline-flex items-center"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       </div>
+
+      {/* Book Customer Order Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-slate-100">Book Customer Commitment</h3>
+                <p className="text-xs text-slate-400">Add order into active OrderSure telemetry</p>
+              </div>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="p-1 text-slate-400 hover:text-slate-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateOrder} className="space-y-4">
+              <div>
+                <label className="text-xs font-mono uppercase tracking-wider text-slate-400 block mb-1">
+                  Purchase Order / Ref #
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newOrderForm.order_number}
+                  onChange={(e) => setNewOrderForm({ ...newOrderForm, order_number: e.target.value })}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-400 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-mono uppercase tracking-wider text-slate-400 block mb-1">
+                  Customer / Client Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newOrderForm.customer_name}
+                  onChange={(e) => setNewOrderForm({ ...newOrderForm, customer_name: e.target.value })}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-400 font-sans"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-mono uppercase tracking-wider text-slate-400 block mb-1">
+                  Product Line
+                </label>
+                <select
+                  value={newOrderForm.product_id}
+                  onChange={(e) => setNewOrderForm({ ...newOrderForm, product_id: parseInt(e.target.value) })}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-400 font-sans"
+                >
+                  {products.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} ({p.sku})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-mono uppercase tracking-wider text-slate-400 block mb-1">
+                    Order Qty
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    value={newOrderForm.quantity}
+                    onChange={(e) => setNewOrderForm({ ...newOrderForm, quantity: parseFloat(e.target.value) || 1 })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-400 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-mono uppercase tracking-wider text-slate-400 block mb-1">
+                    Agreed Unit Price (₹)
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    value={newOrderForm.agreed_unit_price}
+                    onChange={(e) => setNewOrderForm({ ...newOrderForm, agreed_unit_price: parseFloat(e.target.value) || 0 })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-400 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-mono uppercase tracking-wider text-slate-400 block mb-1">
+                  Promised Delivery Date
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={newOrderForm.promised_delivery_date}
+                  onChange={(e) => setNewOrderForm({ ...newOrderForm, promised_delivery_date: e.target.value })}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-400 font-mono"
+                />
+              </div>
+
+              <div className="pt-2 flex justify-end space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-xl transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={creatingOrder}
+                  className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-slate-950 font-bold text-xs rounded-xl shadow-glow-cyan transition flex items-center space-x-1.5"
+                >
+                  {creatingOrder ? 'Booking...' : 'Book Order'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
