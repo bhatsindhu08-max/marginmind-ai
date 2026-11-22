@@ -8,14 +8,13 @@ import { Dashboard } from './pages/Dashboard';
 import { IntelligenceWorkspace } from './workspaces/IntelligenceWorkspace';
 import { AnalysisWorkspace } from './workspaces/AnalysisWorkspace';
 import { BusinessDataWorkspace } from './workspaces/BusinessDataWorkspace';
-import { DecisionWorkspace } from './workspaces/DecisionWorkspace';
 import { SettingsWorkspace } from './workspaces/SettingsWorkspace';
 import { Login } from './pages/Login';
 
 const MainLayout: React.FC = () => {
   const { isAuthenticated } = useAuth();
 
-  // Exactly 6 Workspaces: 'overview' | 'intelligence' | 'analysis' | 'data' | 'decisions' | 'settings'
+  // Exactly 5 Workspaces: 'overview' | 'intelligence' | 'analysis' | 'data' | 'settings'
   const [currentWorkspace, setCurrentWorkspace] = useState<string>('overview');
 
   // Internal tab state for each workspace
@@ -23,29 +22,12 @@ const MainLayout: React.FC = () => {
     intelligence: 'margin',
     analysis: 'orders',
     data: 'products',
-    decisions: 'pending',
     settings: 'financial',
   });
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
-  const [pendingCount, setPendingCount] = useState<number>(0);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadPendingCount();
-    }
-  }, [isAuthenticated, currentWorkspace]);
-
-  const loadPendingCount = async () => {
-    try {
-      const decisions = await apiRequest<any[]>('/decisions/pending');
-      setPendingCount(decisions?.length || 0);
-    } catch {
-      // Graceful fallback
-    }
-  };
 
   // Global seamless router: maps any legacy tab or new workspace/tab navigation cleanly
   const handleGlobalNavigate = (destination: string, subTab?: string) => {
@@ -79,17 +61,17 @@ const MainLayout: React.FC = () => {
       documents: { ws: 'data', tab: 'documents' },
       reports: { ws: 'data', tab: 'reports' },
 
-      // Decision Centre Workspace
-      decisions: { ws: 'decisions', tab: subTab || workspaceTabs.decisions || 'pending' },
-      approvals: { ws: 'decisions', tab: 'history' },
-      history: { ws: 'decisions', tab: 'history' },
+      // Redirect any legacy Decision Centre links seamlessly to Analysis / OrderSure
+      decisions: { ws: 'analysis', tab: 'orders' },
+      approvals: { ws: 'analysis', tab: 'orders' },
+      history: { ws: 'analysis', tab: 'orders' },
 
       // Settings Workspace
       settings: { ws: 'settings', tab: subTab || workspaceTabs.settings || 'financial' },
       onboarding: { ws: 'settings', tab: 'company' },
       company: { ws: 'settings', tab: 'company' },
-      users: { ws: 'settings', tab: 'team' },
-      team: { ws: 'settings', tab: 'team' },
+      users: { ws: 'settings', tab: 'financial' },
+      team: { ws: 'settings', tab: 'financial' },
       financial: { ws: 'settings', tab: 'financial' },
       integrations: { ws: 'settings', tab: 'integrations' },
     };
@@ -141,14 +123,6 @@ const MainLayout: React.FC = () => {
             onTabChange={(tab) => setWorkspaceTab('data', tab)}
           />
         );
-      case 'decisions':
-        return (
-          <DecisionWorkspace
-            initialTab={workspaceTabs.decisions}
-            onTabChange={(tab) => setWorkspaceTab('decisions', tab)}
-            pendingCount={pendingCount}
-          />
-        );
       case 'settings':
         return (
           <SettingsWorkspace
@@ -163,7 +137,7 @@ const MainLayout: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-slate-950 text-slate-100 font-sans">
-      {/* Exactly 6 Primary Workspaces Sidebar */}
+      {/* Exactly 5 Primary Workspaces Sidebar */}
       <Sidebar
         currentWorkspace={currentWorkspace}
         onSelectWorkspace={(ws) => handleGlobalNavigate(ws)}
@@ -172,7 +146,6 @@ const MainLayout: React.FC = () => {
         isMobileOpen={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
         onOpenSearch={() => setIsSearchOpen(true)}
-        pendingDecisionsCount={pendingCount}
       />
 
       <div className="flex-1 flex flex-col min-w-0">

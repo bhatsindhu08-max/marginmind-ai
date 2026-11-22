@@ -53,10 +53,10 @@ export const Reports: React.FC = () => {
     },
     {
       id: 'governance_audit',
-      title: 'Human Governance & Decision Approval Ledger',
-      desc: 'Immutable audit trail of authorized price revisions, proposal edits, and executive authorizations.',
+      title: 'Pricing & Quotation Audit Ledger',
+      desc: 'Historical ledger of price revisions, supplier quotation updates, and margin adjustments.',
       formats: ['pdf', 'excel'] as ('pdf' | 'excel')[],
-      badge: 'Governance',
+      badge: 'Audit Trail',
     },
   ];
 

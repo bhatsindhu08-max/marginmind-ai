@@ -146,16 +146,16 @@ export const ScenarioSimulator: React.FC<ScenarioSimulatorProps> = ({ onNavigate
             </div>
             <div className="p-5 glass-panel rounded-2xl flex flex-col justify-between">
               <div>
-                <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider block">Prepared Decisions</span>
+                <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider block">Price Revisions Advised</span>
                 <span className="text-2xl sm:text-3xl font-bold font-mono text-emerald-400 mt-1 block tabular-nums">
                   {result.prepared_decision_count} Generated
                 </span>
               </div>
               <button
-                onClick={() => onNavigate && onNavigate('decisions')}
+                onClick={() => onNavigate && onNavigate('products')}
                 className="text-xs text-cyan-400 hover:text-cyan-300 font-medium flex items-center space-x-1 mt-3 group"
               >
-                <span>Review in Decision Centre</span>
+                <span>Review Product Catalog</span>
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
               </button>
             </div>

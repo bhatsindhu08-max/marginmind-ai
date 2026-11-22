@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Settings } from '../pages/Settings';
 import { Onboarding } from '../pages/Onboarding';
-import { UserManagement } from '../pages/UserManagement';
-import { Sliders, Building, Users, Link2, ExternalLink } from 'lucide-react';
+import { Sliders, Building, Link2, ExternalLink } from 'lucide-react';
 
 interface SettingsWorkspaceProps {
   initialTab?: string;
@@ -40,13 +39,6 @@ export const SettingsWorkspace: React.FC<SettingsWorkspaceProps> = ({
       sublabel: 'Profiles & Schema',
       icon: Building,
       description: 'Switch between Metal, Textile, Electronics & Food Processing industry configurations',
-    },
-    {
-      id: 'team',
-      label: 'Team & Permissions',
-      sublabel: 'RBAC Access',
-      icon: Users,
-      description: 'Manage users, assign roles (Owner, Finance, Procurement, Production) and sign-off thresholds',
     },
     {
       id: 'integrations',
@@ -111,7 +103,6 @@ export const SettingsWorkspace: React.FC<SettingsWorkspaceProps> = ({
       <div className="flex-1 p-6">
         {activeTab === 'financial' && <Settings />}
         {activeTab === 'company' && <Onboarding />}
-        {activeTab === 'team' && <UserManagement />}
         {activeTab === 'integrations' && (
           <div className="max-w-4xl mx-auto space-y-6">
             <div className="glass-panel rounded-2xl p-6">

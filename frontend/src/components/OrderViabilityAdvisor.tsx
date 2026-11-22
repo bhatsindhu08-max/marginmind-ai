@@ -258,29 +258,10 @@ export const OrderViabilityAdvisor: React.FC<OrderViabilityAdvisorProps> = ({
     }
   };
 
-  const handleSendToDecisionCentre = async () => {
+  const handleApplySuggestedPrice = () => {
     if (!evaluation) return;
-    try {
-      await apiRequest('/decisions/propose', {
-        method: 'POST',
-        body: JSON.stringify({
-          decision_type: 'PRICE_ADJUSTMENT',
-          title: `Order Price Revision: ${evaluation.product_name || itemName}`,
-          summary: `Order evaluation indicates a required price revision to protect against material inflation.`,
-          rationale: evaluation.advisory?.advice || 'Order margin protection review.',
-          financial_impact_json: {
-            order_quantity: orderQuantity,
-            current_unit_price: unitPrice,
-            recommended_unit_price: Math.round(evaluation.spend_breakdown?.unit_cost_required * 1.25 || unitPrice * 1.15),
-            total_revenue: evaluation.total_revenue,
-            net_profit: evaluation.profitability?.net_profit,
-          },
-        }),
-      });
-      alert(`Price adjustment proposal created in Decision Centre!`);
-    } catch (err: any) {
-      alert('Failed to submit to Decision Centre: ' + err.message);
-    }
+    const suggested = Math.round(evaluation.spend_breakdown?.unit_cost_required * 1.25 || unitPrice * 1.15);
+    setUnitPrice(suggested);
   };
 
   const adv = evaluation?.advisory || {};
@@ -491,13 +472,22 @@ export const OrderViabilityAdvisor: React.FC<OrderViabilityAdvisorProps> = ({
                   <span>Accept & Book Order</span>
                 </button>
               ) : (
-                <button
-                  onClick={handleSendToDecisionCentre}
-                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold rounded-xl shadow-sm transition flex items-center space-x-1.5"
-                >
-                  <AlertTriangle className="w-4 h-4" />
-                  <span>Propose Price Increase</span>
-                </button>
+                <>
+                  <button
+                    onClick={handleApplySuggestedPrice}
+                    className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold rounded-xl shadow-sm transition flex items-center space-x-1.5"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    <span>Apply Profitable Price (₹{Math.round(evaluation.spend_breakdown?.unit_cost_required * 1.25 || unitPrice * 1.15)})</span>
+                  </button>
+                  <button
+                    onClick={handleCreateOrder}
+                    className="px-3 py-2 bg-rose-950/60 hover:bg-rose-900/60 text-rose-300 border border-rose-800 text-xs font-semibold rounded-xl transition flex items-center space-x-1.5"
+                  >
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    <span>Book Anyway (Accept Loss)</span>
+                  </button>
+                </>
               )}
             </div>
           </div>

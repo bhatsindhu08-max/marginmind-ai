@@ -4,7 +4,6 @@ import {
   Sparkles,
   Calculator,
   Database,
-  CheckSquare,
   Settings,
   PanelLeftClose,
   PanelLeftOpen,
@@ -20,7 +19,15 @@ export interface SidebarProps {
   isMobileOpen: boolean;
   onCloseMobile: () => void;
   onOpenSearch: () => void;
-  pendingDecisionsCount?: number;
+}
+
+interface WorkspaceItem {
+  id: string;
+  label: string;
+  badge?: string;
+  badgeType?: 'alert' | 'standard';
+  icon: any;
+  description: string;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -31,10 +38,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isMobileOpen,
   onCloseMobile,
   onOpenSearch,
-  pendingDecisionsCount = 0,
 }) => {
-  // Exactly 6 primary workspaces
-  const workspaces = [
+  // Exactly 5 primary workspaces for single-owner manufacturing operations
+  const workspaces: WorkspaceItem[] = [
     {
       id: 'overview',
       label: 'Overview',
@@ -61,18 +67,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       description: 'Products master, BOM recipes, Supplier quotes & Document OCR',
     },
     {
-      id: 'decisions',
-      label: 'Decision Centre',
-      icon: CheckSquare,
-      badge: pendingDecisionsCount > 0 ? `${pendingDecisionsCount}` : undefined,
-      badgeType: pendingDecisionsCount > 0 ? 'alert' : undefined,
-      description: 'AI-prepared proposals, margin authorization & immutable audit history',
-    },
-    {
       id: 'settings',
       label: 'Settings',
       icon: Settings,
-      description: 'Plant OPEX (Rent & Water), Multi-industry schemas & RBAC team access',
+      description: 'Plant OPEX (Rent & Water), Multi-industry schemas & Configuration',
     },
   ];
 

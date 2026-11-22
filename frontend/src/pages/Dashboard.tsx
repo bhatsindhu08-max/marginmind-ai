@@ -52,7 +52,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const { industryType, businessName } = useAuth();
   const [marginData, setMarginData] = useState<any>(null);
   const [marketSummary, setMarketSummary] = useState<any[]>([]);
-  const [pendingDecisions, setPendingDecisions] = useState<any[]>([]);
   const [openOrders, setOpenOrders] = useState<any[]>([]);
   const [marketEvents, setMarketEvents] = useState<any[]>([]);
   const [supplyVulnerabilities, setSupplyVulnerabilities] = useState<any[]>([]);
@@ -80,10 +79,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const [margins, mkt, decisions, orders, eventsRes, supplyRes] = await Promise.all([
+      const [margins, mkt, orders, eventsRes, supplyRes] = await Promise.all([
         apiRequest<any>('/marginguard/overview').catch(() => null),
         apiRequest<any[]>('/market/summary').catch(() => []),
-        apiRequest<any[]>('/decisions/pending').catch(() => []),
         apiRequest<any[]>('/ordersure/open-orders').catch(() => []),
         apiRequest<any[]>('/market/events').catch(() => []),
         apiRequest<any>('/supplyshock/vulnerabilities').catch(() => null),
@@ -91,7 +89,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
       setMarginData(margins);
       setMarketSummary(mkt || []);
-      setPendingDecisions(decisions || []);
       setOpenOrders(orders || []);
       setMarketEvents(eventsRes || []);
       setSupplyVulnerabilities(supplyRes?.vulnerabilities || []);
@@ -192,11 +189,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
               <span>Simulate Macro Shock</span>
             </button>
             <button
-              onClick={() => onNavigate('decisions')}
+              onClick={() => onNavigate('ordersure')}
               className="flex items-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 text-xs font-bold rounded-xl shadow-glow-emerald transition-all duration-200"
             >
               <CheckCircle2 className="w-4 h-4" />
-              <span>Review Decision Queue ({pendingDecisions.length})</span>
+              <span>OrderSure Gatekeeper</span>
             </button>
           </div>
         </div>
@@ -264,21 +261,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         />
 
         <MetricCard
-          title="Pending Decisions"
-          value={pendingDecisions.length}
-          subtitle="Awaiting executive authorization"
-          change={pendingDecisions.length > 0 ? `${pendingDecisions.length} Proposals` : 'Zero Backlog'}
-          isPositive={pendingDecisions.length === 0}
-          icon={CheckSquare}
+          title="Active Customer Orders"
+          value={openOrders.length}
+          subtitle="Protected under OrderSure"
+          change={openOrders.length > 0 ? `${openOrders.length} Active Contracts` : 'Ready for New Orders'}
+          isPositive={true}
+          icon={ShieldCheck}
           variant="cyan"
-          sparkline={[3, 4, 2, 5, 4, pendingDecisions.length || 3]}
+          sparkline={[4, 5, 6, 5, 7, openOrders.length || 8]}
           sparklineColor="cyan"
           submetrics={[
-            { label: 'Price Hikes', value: '1' },
-            { label: 'Supplier Alt', value: '1' },
-            { label: 'Hurdle Rej', value: '1' },
+            { label: 'Committed', value: `${openOrders.length}` },
+            { label: 'Protected', value: '100%' },
+            { label: 'Risk Gate', value: 'Active' },
           ]}
-          onClick={() => onNavigate('decisions')}
+          onClick={() => onNavigate('ordersure')}
         />
       </div>
 
@@ -578,10 +575,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         </div>
       </div>
 
-      {/* SECTION 4: ORDER GATEKEEPER & DECISION PREPARATION QUEUE (Reference Images 2 & 3) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* SECTION 4: ORDER GATEKEEPER (Reference Images 2 & 3) */}
+      <div>
         {/* Open Orders Feasibility Table (OrderSure) */}
-        <div className="lg:col-span-2 glass-panel rounded-2xl p-6">
+        <div className="glass-panel rounded-2xl p-6">
           <div className="flex items-center justify-between pb-4 border-b border-slate-800/80">
             <div>
               <div className="flex items-center space-x-2">
@@ -658,65 +655,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* Pending Decisions Queue (Reference Image 2 Risk Actions) */}
-        <div className="glass-panel rounded-2xl p-6 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
-              <div className="flex items-center space-x-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <h2 className="text-sm font-bold text-slate-100 uppercase tracking-wider font-mono">
-                  Decision Queue
-                </h2>
-              </div>
-              <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">
-                {pendingDecisions.length} Actionable
-              </span>
-            </div>
-            <p className="text-xs text-slate-400 mt-2 mb-4">
-              AI-prepared proposals with deterministic financial consequences awaiting authorization.
-            </p>
-
-            <div className="space-y-3">
-              {pendingDecisions.slice(0, 3).map((dec) => (
-                <div
-                  key={dec.id}
-                  className="p-3.5 bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-xl transition group"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-bold text-slate-200 line-clamp-1 group-hover:text-cyan-300 transition">
-                      {dec.title}
-                    </span>
-                    <StatusBadge status={dec.status} size="sm" />
-                  </div>
-                  <p className="text-[11px] text-slate-400 mt-1.5 line-clamp-2 leading-relaxed">
-                    {dec.summary}
-                  </p>
-                  <div className="mt-2 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] font-mono text-cyan-400">
-                    <span>Evidence-backed</span>
-                    <span className="text-slate-400 group-hover:text-cyan-300 flex items-center space-x-1">
-                      <span>Review</span>
-                      <ArrowRight className="w-3 h-3 inline" />
-                    </span>
-                  </div>
-                </div>
-              ))}
-
-              {pendingDecisions.length === 0 && (
-                <div className="p-8 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded-xl">
-                  No pending proposals. All margins and orders fully protected.
-                </div>
-              )}
-            </div>
-          </div>
-
-          <button
-            onClick={() => onNavigate('decisions')}
-            className="w-full mt-4 py-2.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-bold rounded-xl transition flex items-center justify-center space-x-2 group"
-          >
-            <span>Open Decision Preparation Centre</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-          </button>
-        </div>
       </div>
 
       {/* SECTION 5: SUPPLY DISRUPTION RADAR & MARKET POLICY FEED */}

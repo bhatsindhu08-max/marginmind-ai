@@ -188,27 +188,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       description: 'Generate formal PDF executive board memos and complete Excel financial models',
     },
 
-    // 5. Decisions & Approvals Workspace
-    {
-      title: 'Pending Decision Queue',
-      category: 'Decision Centre',
-      keywords: 'decisions pending approve reject recalculate human authorization proposals',
-      workspace: 'decisions',
-      tab: 'pending',
-      icon: CheckSquare,
-      description: 'Review AI-prepared recommendations with quantified before/after margins',
-    },
-    {
-      title: 'Decision History & Audit Trail',
-      category: 'Decision Centre',
-      keywords: 'audit history approvals ledger timestamps executive actions comments',
-      workspace: 'decisions',
-      tab: 'history',
-      icon: History,
-      description: 'Complete immutable audit trail of approved, modified, and rejected decisions',
-    },
-
-    // 6. Settings Workspace
+    // 5. Settings Workspace
     {
       title: 'Plant OPEX & Utilities (Rent & Water)',
       category: 'Settings',
@@ -226,15 +206,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       tab: 'company',
       icon: Building2,
       description: 'Switch and configure industry presets: Metal, Textile, Electronics, Food',
-    },
-    {
-      title: 'Team & RBAC Role Permissions',
-      category: 'Settings',
-      keywords: 'team users rbac roles permissions owner finance procurement production',
-      workspace: 'settings',
-      tab: 'team',
-      icon: Users,
-      description: 'Manage enterprise team members and granular role-based access control',
     },
     {
       title: 'External Data Feed Connectors',

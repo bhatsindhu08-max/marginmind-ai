@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { UserRole } from '../types';
 import { API_BASE } from '../api/client';
 import {
   Building,
@@ -8,7 +7,6 @@ import {
   Download,
   AlertTriangle,
   LogOut,
-  ShieldCheck,
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
@@ -33,7 +31,7 @@ export const Header: React.FC<HeaderProps> = ({
   isSidebarCollapsed,
   onOpenSearch,
 }) => {
-  const { role, fullName, businessName, industryType, businessId, switchDemoRole, logout } = useAuth();
+  const { fullName, businessName, industryType, logout } = useAuth();
   const [roleMenuOpen, setRoleMenuOpen] = useState(false);
   const [downloadMenuOpen, setDownloadMenuOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -58,14 +56,7 @@ export const Header: React.FC<HeaderProps> = ({
         .join('')
         .toUpperCase()
         .slice(0, 2)
-    : 'U';
-
-  const roles: Array<{ role: UserRole; label: string; desc: string }> = [
-    { role: 'business_owner', label: 'Business Owner', desc: 'Full Authority & Approvals' },
-    { role: 'finance_manager', label: 'Finance Manager', desc: 'Costing, Margins & Pricing' },
-    { role: 'procurement_manager', label: 'Procurement Manager', desc: 'Suppliers, Invoices & Sourcing' },
-    { role: 'production_manager', label: 'Production Manager', desc: 'BOMs, Inventory & Capacity' },
-  ];
+    : 'BO';
 
   const handleDownloadQuickReport = async (format: 'pdf' | 'excel') => {
     try {
@@ -212,10 +203,10 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             <div className="hidden md:flex flex-col text-left">
               <span className="font-semibold text-xs text-slate-200 leading-tight">
-                {fullName || 'Demo Executive'}
+                {fullName || 'Business Owner'}
               </span>
-              <span className="text-[10px] text-cyan-400 font-mono capitalize">
-                {(role || 'business_owner').replace('_', ' ')}
+              <span className="text-[10px] text-cyan-400 font-mono">
+                Business Owner
               </span>
             </div>
             <ChevronDown className="w-3 h-3 text-slate-400" />
@@ -224,46 +215,22 @@ export const Header: React.FC<HeaderProps> = ({
           {roleMenuOpen && (
             <div className="absolute right-0 mt-2 w-64 glass-panel-elevated rounded-xl shadow-2xl p-2 z-40 border border-slate-700">
               <div className="px-3 py-2 border-b border-slate-800">
-                <div className="text-xs font-bold text-slate-100">{fullName || 'Executive User'}</div>
+                <div className="text-xs font-bold text-slate-100">{fullName || 'Business Owner'}</div>
                 <div className="text-[10px] font-mono text-cyan-400 mt-0.5">
-                  RBAC Role: {(role || 'business_owner').replace('_', ' ')}
+                  Business Owner & Principal Operator
+                </div>
+                <div className="text-[10px] text-slate-400 mt-1 leading-relaxed">
+                  Full control over facility costs, raw material index feeds, pricing and order evaluation.
                 </div>
               </div>
 
-              {/* Demo Role Switcher Section */}
-              <div className="py-1">
-                <div className="px-3 py-1 text-[10px] font-mono uppercase text-slate-400 tracking-wider">
-                  Switch Demo Role
-                </div>
-                {roles.map((r) => (
-                  <button
-                    key={r.role}
-                    onClick={() => {
-                      switchDemoRole(r.role);
-                      setRoleMenuOpen(false);
-                    }}
-                    className={`w-full text-left px-3 py-1.5 text-xs rounded-lg flex items-center justify-between transition ${
-                      role === r.role
-                        ? 'bg-cyan-500/10 text-cyan-300 font-semibold border border-cyan-500/20'
-                        : 'text-slate-300 hover:bg-slate-800'
-                    }`}
-                  >
-                    <div>
-                      <div className="font-medium">{r.label}</div>
-                      <div className="text-[10px] text-slate-400">{r.desc}</div>
-                    </div>
-                    {role === r.role && <ShieldCheck className="w-3.5 h-3.5 text-cyan-400 ml-2" />}
-                  </button>
-                ))}
-              </div>
-
-              <div className="border-t border-slate-800 pt-1 mt-1">
+              <div className="pt-2 mt-1">
                 <button
                   onClick={() => {
                     logout();
                     setRoleMenuOpen(false);
                   }}
-                  className="w-full text-left px-3 py-1.5 text-xs text-rose-400 hover:bg-rose-950/40 rounded-lg flex items-center space-x-2 transition"
+                  className="w-full text-left px-3 py-2 text-xs text-rose-400 hover:bg-rose-950/40 rounded-lg flex items-center space-x-2 transition font-medium"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span>Sign Out</span>
