@@ -33,6 +33,11 @@ export const Products: React.FC = () => {
   const [category, setCategory] = useState('Fabricated Components');
   const [sellingPrice, setSellingPrice] = useState<number>(3500);
   const [targetMargin, setTargetMargin] = useState<number>(25);
+  const [rawMaterialName, setRawMaterialName] = useState('');
+  const [materialCost, setMaterialCost] = useState<number>(1200);
+  const [materialUnit, setMaterialUnit] = useState('kg');
+  const [directLabourCost, setDirectLabourCost] = useState<number>(350);
+  const [fixedOverhead, setFixedOverhead] = useState<number>(200);
 
   useEffect(() => {
     loadProducts();
@@ -100,16 +105,28 @@ export const Products: React.FC = () => {
       await apiRequest('/products', {
         method: 'POST',
         body: JSON.stringify({
-          code,
+          code: code || `PRD-${Date.now().toString().slice(-4)}`,
           name,
-          sku,
+          sku: sku || `SKU-${Date.now().toString().slice(-4)}`,
           category,
-          selling_price: sellingPrice,
-          target_margin_percent: targetMargin,
+          selling_price: Number(sellingPrice) || 0,
+          target_margin_percent: Number(targetMargin) || 25,
           critical_margin_threshold: 16.0,
+          raw_material_name: rawMaterialName || `${name} Raw Material`,
+          material_cost: Number(materialCost) || 0,
+          material_unit: materialUnit || 'kg',
+          direct_labour_cost: Number(directLabourCost) || 0,
+          fixed_overhead: Number(fixedOverhead) || 0,
         }),
       });
       setShowCreateModal(false);
+      setCode('');
+      setName('');
+      setSku('');
+      setRawMaterialName('');
+      setMaterialCost(1200);
+      setDirectLabourCost(350);
+      setFixedOverhead(200);
       await loadProducts();
     } catch (e: any) {
       alert('Failed to create product: ' + e.message);
@@ -705,6 +722,72 @@ export const Products: React.FC = () => {
                   onChange={(e) => setTargetMargin(parseFloat(e.target.value) || 25)}
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100 font-mono"
                 />
+              </div>
+            </div>
+
+            {/* REAL COST INPUTS: PREVENT ZERO MATERIAL & LABOUR COSTS */}
+            <div className="pt-2 border-t border-slate-800/80 space-y-3">
+              <span className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider block font-mono">
+                Factory Unit Costs (BOM & Labour)
+              </span>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div className="col-span-2">
+                  <label className="text-[11px] text-slate-300 block mb-1">Primary Raw Material</label>
+                  <input
+                    type="text"
+                    value={rawMaterialName}
+                    onChange={(e) => setRawMaterialName(e.target.value)}
+                    placeholder="e.g. Cotton 180 GSM, Steel 2062"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-300 block mb-1">Unit</label>
+                  <input
+                    type="text"
+                    value={materialUnit}
+                    onChange={(e) => setMaterialUnit(e.target.value)}
+                    placeholder="kg / mtr / pc"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-[11px] text-slate-300 block mb-1">Material Cost (₹)</label>
+                  <input
+                    type="number"
+                    step="any"
+                    required
+                    value={materialCost}
+                    onChange={(e) => setMaterialCost(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-cyan-800/60 rounded-lg p-2 text-xs text-cyan-300 font-mono font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-300 block mb-1">Labour Cost (₹)</label>
+                  <input
+                    type="number"
+                    step="any"
+                    required
+                    value={directLabourCost}
+                    onChange={(e) => setDirectLabourCost(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-emerald-800/60 rounded-lg p-2 text-xs text-emerald-300 font-mono font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-300 block mb-1">Rent & Overhead (₹)</label>
+                  <input
+                    type="number"
+                    step="any"
+                    required
+                    value={fixedOverhead}
+                    onChange={(e) => setFixedOverhead(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-blue-800/60 rounded-lg p-2 text-xs text-blue-300 font-mono font-semibold"
+                  />
+                </div>
               </div>
             </div>
 

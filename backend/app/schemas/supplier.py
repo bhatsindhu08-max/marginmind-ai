@@ -41,7 +41,10 @@ class SupplierBase(BaseModel):
 
 
 class SupplierCreate(SupplierBase):
-    pass
+    material_name: Optional[str] = None
+    material_id: Optional[int] = None
+    quote_price: Optional[float] = None
+    unit: Optional[str] = "kg"
 
 
 class SupplierUpdate(BaseModel):

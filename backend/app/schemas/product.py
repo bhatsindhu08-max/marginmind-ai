@@ -89,7 +89,11 @@ class ProductBase(BaseModel):
 
 
 class ProductCreate(ProductBase):
-    pass
+    raw_material_name: Optional[str] = None
+    material_cost: Optional[float] = None
+    material_unit: Optional[str] = "kg"
+    direct_labour_cost: Optional[float] = None
+    fixed_overhead: Optional[float] = None
 
 
 class ProductUpdate(BaseModel):

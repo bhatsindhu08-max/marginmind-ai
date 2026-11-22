@@ -15,7 +15,7 @@ class MaterialBase(BaseModel):
 
 
 class MaterialCreate(MaterialBase):
-    pass
+    initial_stock: Optional[float] = 100.0
 
 
 class MaterialUpdate(BaseModel):

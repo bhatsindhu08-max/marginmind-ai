@@ -15,6 +15,9 @@ export const Suppliers: React.FC = () => {
   const [leadTime, setLeadTime] = useState<number>(14);
   const [riskRating, setRiskRating] = useState('LOW');
   const [paymentTerms, setPaymentTerms] = useState('Net 30');
+  const [materialName, setMaterialName] = useState('');
+  const [quotePrice, setQuotePrice] = useState<number>(250);
+  const [unit, setUnit] = useState('kg');
 
   useEffect(() => {
     loadSuppliers();
@@ -38,16 +41,24 @@ export const Suppliers: React.FC = () => {
       await apiRequest('/suppliers', {
         method: 'POST',
         body: JSON.stringify({
-          code,
+          code: code || `SUP-${Date.now().toString().slice(-4)}`,
           name,
-          contact_email: contactEmail,
-          lead_time_days: leadTime,
+          contact_email: contactEmail || `${name.toLowerCase().replace(/[^a-z0-9]/g, '')}@supplier.com`,
+          lead_time_days: Number(leadTime) || 14,
           reliability_score: 0.95,
           risk_rating: riskRating,
           payment_terms: paymentTerms,
+          material_name: materialName,
+          quote_price: Number(quotePrice) || 0,
+          unit: unit || 'kg',
         }),
       });
       setShowAddModal(false);
+      setCode('');
+      setName('');
+      setContactEmail('');
+      setMaterialName('');
+      setQuotePrice(250);
       await loadSuppliers();
     } catch (e: any) {
       alert('Failed to add supplier: ' + e.message);
@@ -224,6 +235,48 @@ export const Suppliers: React.FC = () => {
                   <option value="MEDIUM">MEDIUM</option>
                   <option value="HIGH">HIGH</option>
                 </select>
+              </div>
+            </div>
+
+            {/* Material & Quoted Price Section */}
+            <div className="pt-2 border-t border-slate-800/80 space-y-3">
+              <span className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider block font-mono">
+                Quoted Raw Material & Pricing
+              </span>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div className="col-span-2">
+                  <label className="text-[11px] text-slate-300 block mb-1">Material Supplied</label>
+                  <input
+                    type="text"
+                    value={materialName}
+                    onChange={(e) => setMaterialName(e.target.value)}
+                    placeholder="e.g. Cotton Yarn, Carbon Steel, Copper"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-300 block mb-1">Unit</label>
+                  <input
+                    type="text"
+                    value={unit}
+                    onChange={(e) => setUnit(e.target.value)}
+                    placeholder="kg / pc / mtr"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] text-slate-300 block mb-1">Quoted Rate / Price (₹ per unit)</label>
+                <input
+                  type="number"
+                  step="any"
+                  value={quotePrice}
+                  onChange={(e) => setQuotePrice(parseFloat(e.target.value) || 0)}
+                  placeholder="250.00"
+                  className="w-full bg-slate-950 border border-emerald-800/60 rounded-lg p-2 text-xs text-emerald-300 font-mono font-semibold"
+                />
               </div>
             </div>
 

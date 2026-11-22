@@ -26,15 +26,80 @@ def list_products(
 def create_product(
     data: ProductCreate,
     tenant_id: int = Depends(get_current_tenant),
-    current_user = Depends(require_role([UserRole.PRODUCTION_MANAGER, UserRole.FINANCE_MANAGER])),
+    current_user = Depends(require_role([UserRole.PRODUCTION_MANAGER, UserRole.FINANCE_MANAGER, UserRole.BUSINESS_OWNER])),
     db: Session = Depends(get_db)
 ):
-    prod = Product(business_id=tenant_id, **data.model_dump())
+    prod_dict = data.model_dump(exclude={"raw_material_name", "material_cost", "material_unit", "direct_labour_cost", "fixed_overhead"})
+    prod = Product(business_id=tenant_id, **prod_dict)
     db.add(prod)
     db.flush()
 
-    # Create default production cost structure
-    p_cost = ProductionCost(business_id=tenant_id, product_id=prod.id)
+    # Create or link Material & BOM if material info was provided
+    mat_cost = float(data.material_cost or 0.0)
+    mat_name = (data.raw_material_name or "").strip()
+    u_val = data.material_unit or "kg"
+
+    if mat_cost > 0 or mat_name:
+        if not mat_name:
+            mat_name = f"{prod.name} Primary Material"
+        mat = db.query(Material).filter(Material.business_id == tenant_id, Material.name == mat_name).first()
+        if not mat:
+            mat = Material(
+                business_id=tenant_id,
+                code=f"MAT-{prod.code[:8]}",
+                name=mat_name,
+                category="Raw Material",
+                unit=u_val,
+                standard_cost=mat_cost,
+                current_market_price=mat_cost,
+                min_safety_stock=50.0,
+                is_active=True
+            )
+            db.add(mat)
+            db.flush()
+
+            from backend.app.models import Inventory
+            inv = Inventory(
+                business_id=tenant_id,
+                material_id=mat.id,
+                current_stock=100.0,
+                unit=u_val,
+                weighted_average_cost=mat_cost
+            )
+            db.add(inv)
+
+        bom = BOM(business_id=tenant_id, product_id=prod.id, version="1.0", is_active=True, notes="Primary Recipe")
+        db.add(bom)
+        db.flush()
+
+        bom_item = BOMItem(
+            bom_id=bom.id,
+            material_id=mat.id,
+            quantity=1.0,
+            unit=u_val,
+            scrap_percent=2.0
+        )
+        db.add(bom_item)
+
+    # Create production cost structure with specified labour and fixed overhead
+    labour_rate = float(data.direct_labour_cost if data.direct_labour_cost is not None else 150.0)
+    overhead_rate = float(data.fixed_overhead if data.fixed_overhead is not None else 120.0)
+
+    p_cost = ProductionCost(
+        business_id=tenant_id,
+        product_id=prod.id,
+        direct_labour_hours=1.0,
+        labour_rate_hourly=labour_rate,
+        fixed_overhead_per_unit=overhead_rate,
+        machine_hours=0.5,
+        machine_rate_hourly=100.0,
+        energy_kwh=5.0,
+        energy_rate_kwh=8.0,
+        packaging_freight_per_unit=30.0,
+        worker_count=1,
+        wage_per_worker_daily=labour_rate,
+        daily_output_units=100.0
+    )
     db.add(p_cost)
     db.commit()
     db.refresh(prod)

@@ -26,10 +26,12 @@ def list_materials(
 def create_material(
     data: MaterialCreate,
     tenant_id: int = Depends(get_current_tenant),
-    current_user = Depends(require_role([UserRole.PROCUREMENT_MANAGER, UserRole.PRODUCTION_MANAGER])),
+    current_user = Depends(require_role([UserRole.PROCUREMENT_MANAGER, UserRole.PRODUCTION_MANAGER, UserRole.BUSINESS_OWNER])),
     db: Session = Depends(get_db)
 ):
-    mat = Material(business_id=tenant_id, **data.model_dump())
+    init_stock = float(data.initial_stock if data.initial_stock is not None else 100.0)
+    mat_dict = data.model_dump(exclude={"initial_stock"})
+    mat = Material(business_id=tenant_id, **mat_dict)
     db.add(mat)
     db.flush()
 
@@ -37,9 +39,10 @@ def create_material(
     inv = Inventory(
         business_id=tenant_id,
         material_id=mat.id,
-        current_stock=0.0,
+        current_stock=init_stock,
         unit=mat.unit,
-        weighted_average_cost=mat.standard_cost
+        weighted_average_cost=mat.standard_cost,
+        safety_stock=mat.min_safety_stock
     )
     db.add(inv)
     db.commit()

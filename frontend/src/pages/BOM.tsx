@@ -43,6 +43,8 @@ export const BOM: React.FC = () => {
   const [unit, setUnit] = useState('kg');
   const [standardCost, setStandardCost] = useState<number>(100);
   const [marketPrice, setMarketPrice] = useState<number>(100);
+  const [initialStock, setInitialStock] = useState<number>(500);
+  const [inventoryMap, setInventoryMap] = useState<Record<number, number>>({});
 
   useEffect(() => {
     loadMaterials();
@@ -52,8 +54,16 @@ export const BOM: React.FC = () => {
   const loadMaterials = async () => {
     try {
       setLoading(true);
-      const data = await apiRequest<Material[]>('/materials');
-      setMaterials(data);
+      const [data, invList] = await Promise.all([
+        apiRequest<Material[]>('/materials'),
+        apiRequest<any[]>('/materials/inventory').catch(() => [])
+      ]);
+      setMaterials(data || []);
+      const map: Record<number, number> = {};
+      (invList || []).forEach((inv: any) => {
+        map[inv.material_id] = inv.current_stock;
+      });
+      setInventoryMap(map);
     } catch (e) {
       console.error('Failed to load materials:', e);
     } finally {
@@ -140,17 +150,21 @@ export const BOM: React.FC = () => {
       await apiRequest('/materials', {
         method: 'POST',
         body: JSON.stringify({
-          code,
+          code: code || `MAT-${Date.now().toString().slice(-4)}`,
           name,
           category,
           unit,
-          standard_cost: standardCost,
-          current_market_price: marketPrice,
+          standard_cost: Number(standardCost) || 0,
+          current_market_price: Number(marketPrice) || Number(standardCost) || 0,
+          initial_stock: Number(initialStock) || 0,
           min_safety_stock: 100.0,
           is_active: true,
         }),
       });
       setShowAddModal(false);
+      setCode('');
+      setName('');
+      setInitialStock(500);
       await loadMaterials();
     } catch (e: any) {
       alert('Failed to add raw material: ' + e.message);
@@ -272,16 +286,18 @@ export const BOM: React.FC = () => {
                 <th className="py-3 px-4">Material Code & Description</th>
                 <th className="py-3 px-4">Category</th>
                 <th className="py-3 px-4 text-center">Unit</th>
-                <th className="py-3 px-4 text-right">Standard Cost (PO Base)</th>
+                <th className="py-3 px-4 text-right">In-Stock Quantity</th>
+                <th className="py-3 px-4 text-right">Standard Cost</th>
                 <th className="py-3 px-4 text-right">Landed Market Price</th>
-                <th className="py-3 px-4">Linked External Benchmark</th>
+                <th className="py-3 px-4 text-right">Total Stock Value</th>
                 <th className="py-3 px-4 text-center">Status</th>
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800 text-slate-300 font-mono">
               {materials.map((m) => {
-                const mapping = m.index_mappings?.[0];
+                const stockQty = inventoryMap[m.id] !== undefined ? inventoryMap[m.id] : 100;
+                const stockVal = stockQty * (m.current_market_price || m.standard_cost);
                 return (
                   <tr key={m.id} className="hover:bg-slate-800/30 transition">
                     <td className="py-3.5 px-4 font-sans">
@@ -290,24 +306,15 @@ export const BOM: React.FC = () => {
                     </td>
                     <td className="py-3.5 px-4 font-sans text-slate-400">{m.category}</td>
                     <td className="py-3.5 px-4 text-center">{m.unit}</td>
+                    <td className="py-3.5 px-4 text-right font-bold text-cyan-300">
+                      {stockQty.toLocaleString()} {m.unit}
+                    </td>
                     <td className="py-3.5 px-4 text-right font-medium">₹{m.standard_cost.toLocaleString()}</td>
                     <td className="py-3.5 px-4 text-right font-bold text-slate-100">
                       ₹{m.current_market_price.toLocaleString()}
                     </td>
-                    <td className="py-3.5 px-4">
-                      {mapping ? (
-                        <div className="flex items-center space-x-1.5">
-                          <Link className="w-3 h-3 text-emerald-400" />
-                          <span className="font-mono text-emerald-400 text-xs">
-                            {mapping.indicator_code}
-                          </span>
-                          <span className="text-[10px] text-slate-400">
-                            (×{mapping.multiplier} + ₹{mapping.freight_basis} freight)
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-slate-400 italic">No external link</span>
-                      )}
+                    <td className="py-3.5 px-4 text-right font-bold text-emerald-400">
+                      ₹{stockVal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                     </td>
                     <td className="py-3.5 px-4 text-center">
                       <StatusBadge status={m.is_active ? 'HEALTHY' : 'CRITICAL'} />
@@ -590,6 +597,22 @@ export const BOM: React.FC = () => {
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-100 font-mono"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="text-xs text-slate-300 font-medium block mb-1">Current Stock in Hand ({unit})</label>
+              <input
+                type="number"
+                step="any"
+                required
+                value={initialStock}
+                onChange={(e) => setInitialStock(parseFloat(e.target.value) || 0)}
+                placeholder="500"
+                className="w-full bg-slate-950 border border-cyan-800/60 rounded-lg p-2.5 text-xs text-cyan-300 font-mono font-semibold"
+              />
+              <span className="text-[10px] text-slate-400 mt-1 block">
+                Recorded into factory inventory to check order fulfillment feasibility.
+              </span>
             </div>
 
             <div className="flex justify-end space-x-2 pt-2 border-t border-slate-800">
