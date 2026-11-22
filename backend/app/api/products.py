@@ -109,7 +109,14 @@ def get_product_cost_breakdown(
         "energy_kwh": prod_costs.energy_kwh if prod_costs else 10.0,
         "energy_rate_kwh": prod_costs.energy_rate_kwh if prod_costs else 8.0,
         "fixed_overhead_per_unit": prod_costs.fixed_overhead_per_unit if prod_costs else 150.0,
-        "packaging_freight_per_unit": prod_costs.packaging_freight_per_unit if prod_costs else 50.0
+        "packaging_freight_per_unit": prod_costs.packaging_freight_per_unit if prod_costs else 50.0,
+        "worker_count": getattr(prod_costs, 'worker_count', 1) or 1 if prod_costs else 1,
+        "wage_per_worker_daily": getattr(prod_costs, 'wage_per_worker_daily', 0.0) or 0.0 if prod_costs else 0.0,
+        "daily_output_units": getattr(prod_costs, 'daily_output_units', 0.0) or 0.0 if prod_costs else 0.0,
+        "processing_jobwork_cost_per_unit": getattr(prod_costs, 'processing_jobwork_cost_per_unit', 0.0) or 0.0 if prod_costs else 0.0,
+        "inspection_qc_cost_per_unit": getattr(prod_costs, 'inspection_qc_cost_per_unit', 0.0) or 0.0 if prod_costs else 0.0,
+        "consumables_cost_per_unit": getattr(prod_costs, 'consumables_cost_per_unit', 0.0) or 0.0 if prod_costs else 0.0,
+        "boiler_steam_fuel_per_unit": getattr(prod_costs, 'boiler_steam_fuel_per_unit', 0.0) or 0.0 if prod_costs else 0.0,
     }
 
     cost_res = FinancialCalculationEngine.calculate_product_cost(
@@ -134,7 +141,15 @@ def get_product_cost_breakdown(
         "target_margin_percent": prod.target_margin_percent,
         "critical_margin_threshold": prod.critical_margin_threshold,
         "margin_health": cost_res["margin_health"],
-        "material_cost_share_percent": cost_res["material_cost_share_percent"]
+        "material_cost_share_percent": cost_res["material_cost_share_percent"],
+        "labour_calc_method": cost_res.get("labour_calc_method"),
+        "worker_count": cost_res.get("worker_count"),
+        "wage_per_worker_daily": cost_res.get("wage_per_worker_daily"),
+        "daily_output_units": cost_res.get("daily_output_units"),
+        "processing_jobwork_cost": cost_res.get("processing_jobwork_cost"),
+        "inspection_qc_cost": cost_res.get("inspection_qc_cost"),
+        "consumables_cost": cost_res.get("consumables_cost"),
+        "boiler_steam_fuel": cost_res.get("boiler_steam_fuel"),
     }
 
 
@@ -174,3 +189,48 @@ def create_or_update_bom(
     db.commit()
     db.refresh(bom)
     return bom
+
+
+@router.put("/{product_id}/production-costs")
+def update_product_production_costs(
+    product_id: int,
+    cost_data: Dict[str, Any],
+    tenant_id: int = Depends(get_current_tenant),
+    current_user = Depends(require_role([UserRole.PRODUCTION_MANAGER, UserRole.FINANCE_MANAGER, UserRole.BUSINESS_OWNER])),
+    db: Session = Depends(get_db)
+):
+    """
+    Manual Labor Cost, Worker Wage, Output & Overhead Override:
+    Allows user to manually tune worker crew size, daily wages, output targets,
+    and processing costs based on local manufacturing and labor market conditions.
+    """
+    prod = db.query(Product).filter(Product.id == product_id, Product.business_id == tenant_id).first()
+    if not prod:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    pcost = db.query(ProductionCost).filter(ProductionCost.product_id == prod.id, ProductionCost.business_id == tenant_id).first()
+    if not pcost:
+        pcost = ProductionCost(business_id=tenant_id, product_id=prod.id)
+        db.add(pcost)
+
+    fields = [
+        "worker_count", "wage_per_worker_daily", "daily_output_units",
+        "processing_jobwork_cost_per_unit", "inspection_qc_cost_per_unit",
+        "consumables_cost_per_unit", "boiler_steam_fuel_per_unit",
+        "direct_labour_hours", "labour_rate_hourly",
+        "machine_hours", "machine_rate_hourly",
+        "energy_kwh", "energy_rate_kwh",
+        "fixed_overhead_per_unit", "packaging_freight_per_unit"
+    ]
+    for f in fields:
+        if f in cost_data and cost_data[f] is not None:
+            setattr(pcost, f, cost_data[f])
+
+    if "selling_price" in cost_data and cost_data["selling_price"] is not None:
+        prod.selling_price = float(cost_data["selling_price"])
+
+    db.commit()
+    db.refresh(pcost)
+
+    # Return refreshed cost breakdown
+    return get_product_cost_breakdown(product_id=prod.id, tenant_id=tenant_id, db=db)

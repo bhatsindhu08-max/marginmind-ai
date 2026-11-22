@@ -93,7 +93,7 @@ export const DocumentUpload: React.FC = () => {
   }
 
   return (
-    <div className="p-8 space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-[1600px] mx-auto animate-fadeIn">
       {/* Header */}
       <div className="pb-6 border-b border-slate-800 flex items-center justify-between">
         <div>
@@ -112,7 +112,7 @@ export const DocumentUpload: React.FC = () => {
       </div>
 
       {/* Drag & Drop Upload Card */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 shadow-sm">
+      <div className="glass-panel rounded-2xl p-8 shadow-sm">
         <div className="max-w-xl mx-auto text-center space-y-4">
           <div className="flex justify-center space-x-2 mb-2">
             <select
@@ -129,7 +129,7 @@ export const DocumentUpload: React.FC = () => {
 
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-slate-700 hover:border-emerald-500 rounded-2xl p-8 cursor-pointer bg-slate-950/40 hover:bg-slate-950/80 transition flex flex-col items-center justify-center space-y-3"
+            className="border-2 border-dashed border-slate-700 hover:border-cyan-400 hover:shadow-glow-cyan rounded-2xl p-8 cursor-pointer bg-slate-950/40 hover:bg-slate-950/80 transition flex flex-col items-center justify-center space-y-3"
           >
             <div className="p-3 bg-emerald-500/10 rounded-full text-emerald-400 border border-emerald-500/20">
               <Upload className="w-6 h-6" />
@@ -154,7 +154,7 @@ export const DocumentUpload: React.FC = () => {
       </div>
 
       {/* Uploaded Documents Ledger */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+      <div className="glass-panel rounded-2xl overflow-hidden shadow-sm">
         <div className="p-5 border-b border-slate-800">
           <h2 className="text-sm font-semibold text-slate-100 uppercase tracking-wider">
             Document Extraction Provenance Ledger

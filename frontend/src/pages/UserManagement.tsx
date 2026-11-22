@@ -96,7 +96,7 @@ export const UserManagement: React.FC = () => {
       </div>
 
       {/* Roles & Permissions Matrix */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm">
+      <div className="glass-panel rounded-2xl p-6 shadow-sm">
         <h2 className="text-sm font-semibold text-slate-100 uppercase tracking-wider mb-4">
           RBAC Permissions Structure
         </h2>
@@ -129,7 +129,7 @@ export const UserManagement: React.FC = () => {
       </div>
 
       {/* Users Directory Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+      <div className="glass-panel rounded-2xl overflow-hidden shadow-sm">
         <div className="p-5 border-b border-slate-800">
           <h2 className="text-sm font-semibold text-slate-100 uppercase tracking-wider">
             Active Team Members ({users.length})

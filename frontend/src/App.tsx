@@ -1,88 +1,196 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { apiRequest } from './api/client';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
+import { CommandPalette } from './components/CommandPalette';
 import { Dashboard } from './pages/Dashboard';
-import { DecisionCentre } from './pages/DecisionCentre';
-import { ApprovalHistory } from './pages/ApprovalHistory';
-import { MarginGuard } from './pages/MarginGuard';
-import { SupplyShock } from './pages/SupplyShock';
-import { OrderSure } from './pages/OrderSure';
-import { Forecasting } from './pages/Forecasting';
-import { ProductViability } from './pages/ProductViability';
-import { PriceSimulation } from './pages/PriceSimulation';
-import { ScenarioSimulator } from './pages/ScenarioSimulator';
-import { Products } from './pages/Products';
-import { BOM } from './pages/BOM';
-import { Suppliers } from './pages/Suppliers';
-import { MarketIntelligence } from './pages/MarketIntelligence';
-import { DocumentUpload } from './pages/DocumentUpload';
-import { Reports } from './pages/Reports';
-import { UserManagement } from './pages/UserManagement';
-import { Settings } from './pages/Settings';
-import { Onboarding } from './pages/Onboarding';
+import { IntelligenceWorkspace } from './workspaces/IntelligenceWorkspace';
+import { AnalysisWorkspace } from './workspaces/AnalysisWorkspace';
+import { BusinessDataWorkspace } from './workspaces/BusinessDataWorkspace';
+import { DecisionWorkspace } from './workspaces/DecisionWorkspace';
+import { SettingsWorkspace } from './workspaces/SettingsWorkspace';
 import { Login } from './pages/Login';
 
 const MainLayout: React.FC = () => {
   const { isAuthenticated } = useAuth();
-  const [currentTab, setCurrentTab] = useState<string>('dashboard');
+
+  // Exactly 6 Workspaces: 'overview' | 'intelligence' | 'analysis' | 'data' | 'decisions' | 'settings'
+  const [currentWorkspace, setCurrentWorkspace] = useState<string>('overview');
+
+  // Internal tab state for each workspace
+  const [workspaceTabs, setWorkspaceTabs] = useState<Record<string, string>>({
+    intelligence: 'margin',
+    analysis: 'orders',
+    data: 'products',
+    decisions: 'pending',
+    settings: 'financial',
+  });
+
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
+  const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
+  const [pendingCount, setPendingCount] = useState<number>(0);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadPendingCount();
+    }
+  }, [isAuthenticated, currentWorkspace]);
+
+  const loadPendingCount = async () => {
+    try {
+      const decisions = await apiRequest<any[]>('/decisions/pending');
+      setPendingCount(decisions?.length || 0);
+    } catch {
+      // Graceful fallback
+    }
+  };
+
+  // Global seamless router: maps any legacy tab or new workspace/tab navigation cleanly
+  const handleGlobalNavigate = (destination: string, subTab?: string) => {
+    const wsMap: Record<string, { ws: string; tab: string }> = {
+      // Overview
+      overview: { ws: 'overview', tab: 'dashboard' },
+      dashboard: { ws: 'overview', tab: 'dashboard' },
+
+      // Intelligence Workspace
+      intelligence: { ws: 'intelligence', tab: subTab || workspaceTabs.intelligence || 'margin' },
+      marginguard: { ws: 'intelligence', tab: 'margin' },
+      margin: { ws: 'intelligence', tab: 'margin' },
+      supplyshock: { ws: 'intelligence', tab: 'supply' },
+      supply: { ws: 'intelligence', tab: 'supply' },
+      forecasting: { ws: 'intelligence', tab: 'forecasting' },
+      viability: { ws: 'intelligence', tab: 'viability' },
+      market: { ws: 'intelligence', tab: 'market' },
+
+      // Analysis & Simulation Workspace
+      analysis: { ws: 'analysis', tab: subTab || workspaceTabs.analysis || 'orders' },
+      ordersure: { ws: 'analysis', tab: 'orders' },
+      orders: { ws: 'analysis', tab: 'orders' },
+      pricing: { ws: 'analysis', tab: 'pricing' },
+      scenarios: { ws: 'analysis', tab: 'scenarios' },
+
+      // Business Data Workspace
+      data: { ws: 'data', tab: subTab || workspaceTabs.data || 'products' },
+      products: { ws: 'data', tab: 'products' },
+      bom: { ws: 'data', tab: 'bom' },
+      suppliers: { ws: 'data', tab: 'suppliers' },
+      documents: { ws: 'data', tab: 'documents' },
+      reports: { ws: 'data', tab: 'reports' },
+
+      // Decision Centre Workspace
+      decisions: { ws: 'decisions', tab: subTab || workspaceTabs.decisions || 'pending' },
+      approvals: { ws: 'decisions', tab: 'history' },
+      history: { ws: 'decisions', tab: 'history' },
+
+      // Settings Workspace
+      settings: { ws: 'settings', tab: subTab || workspaceTabs.settings || 'financial' },
+      onboarding: { ws: 'settings', tab: 'company' },
+      company: { ws: 'settings', tab: 'company' },
+      users: { ws: 'settings', tab: 'team' },
+      team: { ws: 'settings', tab: 'team' },
+      financial: { ws: 'settings', tab: 'financial' },
+      integrations: { ws: 'settings', tab: 'integrations' },
+    };
+
+    const target = wsMap[destination.toLowerCase()] || { ws: destination, tab: subTab || '' };
+    setCurrentWorkspace(target.ws);
+    if (target.tab) {
+      setWorkspaceTabs((prev) => ({
+        ...prev,
+        [target.ws]: target.tab,
+      }));
+    }
+  };
+
+  const setWorkspaceTab = (workspace: string, tab: string) => {
+    setWorkspaceTabs((prev) => ({
+      ...prev,
+      [workspace]: tab,
+    }));
+  };
 
   if (!isAuthenticated) {
-    return <Login onSuccess={() => setCurrentTab('dashboard')} />;
+    return <Login onSuccess={() => setCurrentWorkspace('overview')} />;
   }
 
-  const renderContent = () => {
-    switch (currentTab) {
-      case 'dashboard':
-        return <Dashboard onNavigate={setCurrentTab} />;
+  const renderWorkspace = () => {
+    switch (currentWorkspace) {
+      case 'overview':
+        return <Dashboard onNavigate={(target) => handleGlobalNavigate(target)} />;
+      case 'intelligence':
+        return (
+          <IntelligenceWorkspace
+            initialTab={workspaceTabs.intelligence}
+            onTabChange={(tab) => setWorkspaceTab('intelligence', tab)}
+          />
+        );
+      case 'analysis':
+        return (
+          <AnalysisWorkspace
+            initialTab={workspaceTabs.analysis}
+            onTabChange={(tab) => setWorkspaceTab('analysis', tab)}
+            onNavigateGlobal={handleGlobalNavigate}
+          />
+        );
+      case 'data':
+        return (
+          <BusinessDataWorkspace
+            initialTab={workspaceTabs.data}
+            onTabChange={(tab) => setWorkspaceTab('data', tab)}
+          />
+        );
       case 'decisions':
-        return <DecisionCentre />;
-      case 'approvals':
-        return <ApprovalHistory />;
-      case 'marginguard':
-        return <MarginGuard />;
-      case 'supplyshock':
-        return <SupplyShock />;
-      case 'ordersure':
-        return <OrderSure />;
-      case 'forecasting':
-        return <Forecasting />;
-      case 'viability':
-        return <ProductViability />;
-      case 'pricing':
-        return <PriceSimulation />;
-      case 'scenarios':
-        return <ScenarioSimulator onNavigate={setCurrentTab} />;
-      case 'products':
-        return <Products />;
-      case 'bom':
-        return <BOM />;
-      case 'suppliers':
-        return <Suppliers />;
-      case 'market':
-        return <MarketIntelligence />;
-      case 'documents':
-        return <DocumentUpload />;
-      case 'reports':
-        return <Reports />;
-      case 'onboarding':
-        return <Onboarding />;
-      case 'users':
-        return <UserManagement />;
+        return (
+          <DecisionWorkspace
+            initialTab={workspaceTabs.decisions}
+            onTabChange={(tab) => setWorkspaceTab('decisions', tab)}
+            pendingCount={pendingCount}
+          />
+        );
       case 'settings':
-        return <Settings />;
+        return (
+          <SettingsWorkspace
+            initialTab={workspaceTabs.settings}
+            onTabChange={(tab) => setWorkspaceTab('settings', tab)}
+          />
+        );
       default:
-        return <Dashboard onNavigate={setCurrentTab} />;
+        return <Dashboard onNavigate={(target) => handleGlobalNavigate(target)} />;
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-950 text-slate-100">
-      <Sidebar currentTab={currentTab} onSelectTab={setCurrentTab} />
+    <div className="flex min-h-screen bg-slate-950 text-slate-100 font-sans">
+      {/* Exactly 6 Primary Workspaces Sidebar */}
+      <Sidebar
+        currentWorkspace={currentWorkspace}
+        onSelectWorkspace={(ws) => handleGlobalNavigate(ws)}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        isMobileOpen={isMobileSidebarOpen}
+        onCloseMobile={() => setIsMobileSidebarOpen(false)}
+        onOpenSearch={() => setIsSearchOpen(true)}
+        pendingDecisionsCount={pendingCount}
+      />
+
       <div className="flex-1 flex flex-col min-w-0">
-        <Header />
-        <main className="flex-1 overflow-y-auto">{renderContent()}</main>
+        <Header
+          onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          isSidebarCollapsed={isSidebarCollapsed}
+          onOpenSearch={() => setIsSearchOpen(true)}
+        />
+        <main className="flex-1 overflow-y-auto">{renderWorkspace()}</main>
       </div>
+
+      {/* Global Command Palette / Search (⌘K) */}
+      <CommandPalette
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        onNavigate={handleGlobalNavigate}
+      />
     </div>
   );
 };

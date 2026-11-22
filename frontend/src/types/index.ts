@@ -13,6 +13,18 @@ export interface User {
   is_active: boolean;
 }
 
+export interface LocationHub {
+  id: string;
+  name: string;
+  state: string;
+  tier: string;
+  primary_industries: string[];
+  daily_wage_benchmark: number;
+  freight_basis_per_kg: number;
+  electricity_rate_kwh: number;
+  notes?: string;
+}
+
 export interface Business {
   id: number;
   name: string;
@@ -20,6 +32,7 @@ export interface Business {
   industry_type: string;
   currency: string;
   address?: string;
+  location_hub?: string;
   settings_json?: Record<string, any>;
 }
 
@@ -66,6 +79,14 @@ export interface ProductCostBreakdown {
   fixed_overhead: number;
   freight_packaging_cost: number;
   scrap_cost: number;
+  worker_count?: number;
+  wage_per_worker_daily?: number;
+  daily_output_units?: number;
+  processing_jobwork_cost?: number;
+  inspection_qc_cost?: number;
+  consumables_cost?: number;
+  boiler_steam_fuel?: number;
+  labour_calc_method?: string;
   total_cost: number;
   gross_profit: number;
   gross_margin_percent: number;

@@ -69,6 +69,7 @@ class Business(Base):
     industry_type = Column(String(50), default="metal_steel", nullable=False)
     currency = Column(String(10), default="INR", nullable=False)
     address = Column(String(255), nullable=True)
+    location_hub = Column(String(100), default="PUNE_MIDC")
     settings_json = Column(JSON, default=dict)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
@@ -272,6 +273,16 @@ class ProductionCost(Base):
     energy_rate_kwh = Column(Float, default=8.0)
     fixed_overhead_per_unit = Column(Float, default=150.0)
     packaging_freight_per_unit = Column(Float, default=50.0)
+
+    # Worker Headcount, Wages & Apparel / Advanced Cost Elements
+    worker_count = Column(Integer, default=1)
+    wage_per_worker_daily = Column(Float, default=500.0)
+    daily_output_units = Column(Float, default=100.0)
+    processing_jobwork_cost_per_unit = Column(Float, default=0.0)
+    inspection_qc_cost_per_unit = Column(Float, default=0.0)
+    consumables_cost_per_unit = Column(Float, default=0.0)
+    boiler_steam_fuel_per_unit = Column(Float, default=0.0)
+    cost_breakdown_json = Column(JSON, default=dict)
 
     product = relationship("Product", back_populates="production_costs")
 

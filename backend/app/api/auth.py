@@ -77,6 +77,24 @@ def register(
     db.add(user)
     db.commit()
 
+    # Automatically provision initial catalog & manufacturing data for the registered industry
+    try:
+        norm_industry = (data.industry_type or "").lower().strip()
+        if norm_industry in ["textile_garment", "textile_garments", "textile", "garment", "apparel"]:
+            from backend.app.seeds.textile_demo import seed_textile_demonstration
+            seed_textile_demonstration(db, business_id=business.id)
+        elif norm_industry in ["electronics_assembly", "electronics", "smt"]:
+            from backend.app.seeds.electronics_demo import seed_electronics_demonstration
+            seed_electronics_demonstration(db, business_id=business.id)
+        elif norm_industry in ["food_processing", "food", "agri"]:
+            from backend.app.seeds.food_demo import seed_food_demonstration
+            seed_food_demonstration(db, business_id=business.id)
+        elif norm_industry in ["metal_steel", "metal", "steel"]:
+            from backend.app.seeds.metal_demo import seed_metal_demonstration
+            seed_metal_demonstration(db, business_id=business.id)
+    except Exception as e:
+        print(f"Warning: automatic industry seeding for business {business.id} encountered notice: {e}")
+
     access_token = create_access_token(subject=str(user.id))
     return {
         "access_token": access_token,

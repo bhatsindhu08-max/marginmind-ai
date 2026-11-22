@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from typing import Optional
 from sqlalchemy.orm import Session
 from backend.app.models import (
     Business, User, Material, MaterialIndexMapping, Supplier,
@@ -10,10 +11,10 @@ from backend.app.services.market_intelligence import MarketIntelligenceService
 from backend.app.services.event_intelligence import EventIntelligenceEngine
 
 
-def seed_metal_demonstration(db: Session) -> Business:
+def seed_metal_demonstration(db: Session, business_id: Optional[int] = None) -> Business:
     """
     Seeds the complete end-to-end Metal Manufacturing demonstration scenario
-    for 'Apex Precision Forging & Fabrication Ltd.'
+    for 'Apex Precision Forging & Fabrication Ltd.' or for a registered tenant.
     """
     # 1. Initialize External Markets & Events
     mkt_service = MarketIntelligenceService(db)
@@ -23,26 +24,35 @@ def seed_metal_demonstration(db: Session) -> Business:
     evt_engine.seed_initial_events()
 
     # 2. Check if Business exists
-    existing = db.query(Business).filter(Business.slug == "apex-precision-forging").first()
-    if existing:
-        return existing
+    if business_id is not None:
+        business = db.query(Business).filter(Business.id == business_id).first()
+        if not business:
+            raise ValueError(f"Business ID {business_id} not found.")
+        has_prods = db.query(Product).filter(Product.business_id == business.id).first()
+        if has_prods:
+            return business
+    else:
+        existing = db.query(Business).filter(Business.slug == "apex-precision-forging").first()
+        if existing:
+            return existing
 
-    # Create Business
-    business = Business(
-        name="Apex Precision Forging & Fabrication Ltd.",
-        slug="apex-precision-forging",
-        industry_type="metal_steel",
-        currency="INR",
-        address="Plot 42, Bhosari Industrial Area, MIDC Pune, Maharashtra, India",
-        settings_json={
-            "default_target_margin": 25.0,
-            "critical_margin_threshold": 16.0,
-            "auto_evaluate_orders": True,
-            "demo_mode": True
-        }
-    )
-    db.add(business)
-    db.flush()
+        # Create Business
+        business = Business(
+            name="Apex Precision Forging & Fabrication Ltd.",
+            slug="apex-precision-forging",
+            industry_type="metal_steel",
+            currency="INR",
+            location_hub="PUNE_MIDC",
+            address="Plot 42, Bhosari Industrial Area, MIDC Pune, Maharashtra, India",
+            settings_json={
+                "default_target_margin": 25.0,
+                "critical_margin_threshold": 16.0,
+                "auto_evaluate_orders": True,
+                "demo_mode": True
+            }
+        )
+        db.add(business)
+        db.flush()
 
     # 3. Create Users with RBAC roles
     users = [
@@ -226,14 +236,27 @@ def seed_metal_demonstration(db: Session) -> Business:
     db.add(ProductionCost(
         business_id=business.id,
         product_id=prod_flange.id,
+        worker_count=18,
+        wage_per_worker_daily=850.0,
+        daily_output_units=120.0,
         direct_labour_hours=1.5,
         labour_rate_hourly=350.0,
+        processing_jobwork_cost_per_unit=120.0,  # Gas carburizing heat treatment & shot blasting
+        inspection_qc_cost_per_unit=45.0,        # Ultrasonic crack testing & MPI inspection
+        consumables_cost_per_unit=65.0,          # Carbide indexable inserts & welding shielding gas
+        boiler_steam_fuel_per_unit=0.0,
         machine_hours=1.2,
         machine_rate_hourly=750.0,
         energy_kwh=18.0,
         energy_rate_kwh=8.5,
         fixed_overhead_per_unit=250.0,
-        packaging_freight_per_unit=120.0
+        packaging_freight_per_unit=120.0,
+        cost_breakdown_json={
+            "description": "Heavy industrial forging blank and precision CNC flange line",
+            "forging_operators": 8,
+            "machinists": 6,
+            "qc_inspectors": 4
+        }
     ))
 
     # Product 2: Lightweight Aviation Bracket
@@ -261,14 +284,27 @@ def seed_metal_demonstration(db: Session) -> Business:
     db.add(ProductionCost(
         business_id=business.id,
         product_id=prod_bracket.id,
+        worker_count=14,
+        wage_per_worker_daily=950.0,
+        daily_output_units=60.0,
         direct_labour_hours=2.2,
         labour_rate_hourly=400.0,
+        processing_jobwork_cost_per_unit=180.0,  # Mil-spec hard anodizing Type III & passivation
+        inspection_qc_cost_per_unit=85.0,        # Zeiss 3D CMM coordinate measuring inspection
+        consumables_cost_per_unit=95.0,          # Diamond-coated end mills & high-pressure coolant
+        boiler_steam_fuel_per_unit=0.0,
         machine_hours=2.0,
         machine_rate_hourly=850.0,
         energy_kwh=24.0,
         energy_rate_kwh=8.5,
         fixed_overhead_per_unit=300.0,
-        packaging_freight_per_unit=150.0
+        packaging_freight_per_unit=150.0,
+        cost_breakdown_json={
+            "description": "Aerospace certified 5-axis DMG Mori milling line",
+            "5axis_machinists": 8,
+            "cmm_specialists": 4,
+            "deburring_finishers": 2
+        }
     ))
 
     # Product 3: Automotive Transmission Housing
@@ -296,14 +332,27 @@ def seed_metal_demonstration(db: Session) -> Business:
     db.add(ProductionCost(
         business_id=business.id,
         product_id=prod_housing.id,
+        worker_count=24,
+        wage_per_worker_daily=800.0,
+        daily_output_units=180.0,
         direct_labour_hours=3.0,
         labour_rate_hourly=350.0,
+        processing_jobwork_cost_per_unit=220.0,  # T6 solution heat treatment & robotic deburring
+        inspection_qc_cost_per_unit=60.0,        # Helium pressure leak decay test & X-ray porosity check
+        consumables_cost_per_unit=80.0,          # Die release agent, shot sleeves & ceramic filters
+        boiler_steam_fuel_per_unit=0.0,
         machine_hours=2.8,
         machine_rate_hourly=800.0,
         energy_kwh=42.0,
         energy_rate_kwh=8.5,
         fixed_overhead_per_unit=450.0,
-        packaging_freight_per_unit=200.0
+        packaging_freight_per_unit=200.0,
+        cost_breakdown_json={
+            "description": "High pressure die casting cell with automated trim press",
+            "foundry_operators": 12,
+            "machining_operators": 8,
+            "leak_test_inspectors": 4
+        }
     ))
 
     # 7. Customer Orders

@@ -66,7 +66,14 @@ class ProductViabilityService:
             "energy_kwh": prod_costs.energy_kwh if prod_costs else 10.0,
             "energy_rate_kwh": prod_costs.energy_rate_kwh if prod_costs else 8.0,
             "fixed_overhead_per_unit": prod_costs.fixed_overhead_per_unit if prod_costs else 150.0,
-            "packaging_freight_per_unit": prod_costs.packaging_freight_per_unit if prod_costs else 50.0
+            "packaging_freight_per_unit": prod_costs.packaging_freight_per_unit if prod_costs else 50.0,
+            "worker_count": getattr(prod_costs, 'worker_count', 1) or 1 if prod_costs else 1,
+            "wage_per_worker_daily": getattr(prod_costs, 'wage_per_worker_daily', 0.0) or 0.0 if prod_costs else 0.0,
+            "daily_output_units": getattr(prod_costs, 'daily_output_units', 0.0) or 0.0 if prod_costs else 0.0,
+            "processing_jobwork_cost_per_unit": getattr(prod_costs, 'processing_jobwork_cost_per_unit', 0.0) or 0.0 if prod_costs else 0.0,
+            "inspection_qc_cost_per_unit": getattr(prod_costs, 'inspection_qc_cost_per_unit', 0.0) or 0.0 if prod_costs else 0.0,
+            "consumables_cost_per_unit": getattr(prod_costs, 'consumables_cost_per_unit', 0.0) or 0.0 if prod_costs else 0.0,
+            "boiler_steam_fuel_per_unit": getattr(prod_costs, 'boiler_steam_fuel_per_unit', 0.0) or 0.0 if prod_costs else 0.0,
         }
 
         cost_res = FinancialCalculationEngine.calculate_product_cost(

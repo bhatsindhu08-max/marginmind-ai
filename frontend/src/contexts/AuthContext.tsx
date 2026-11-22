@@ -8,6 +8,7 @@ interface AuthContextType {
   fullName: string;
   businessName: string;
   industryType: string;
+  businessId: number | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (data: any) => Promise<void>;
@@ -22,7 +23,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [role, setRole] = useState<UserRole>((localStorage.getItem('marginmind_role') as UserRole) || 'business_owner');
   const [fullName, setFullName] = useState<string>(localStorage.getItem('marginmind_name') || 'Rajeshwar Patil');
   const [businessName, setBusinessName] = useState<string>(localStorage.getItem('marginmind_biz') || 'Apex Precision Forging Ltd.');
-  const [industryType, setIndustryType] = useState<string>('metal_steel');
+  const [industryType, setIndustryType] = useState<string>(localStorage.getItem('marginmind_industry') || 'metal_steel');
+  const [businessId, setBusinessId] = useState<number | null>(
+    localStorage.getItem('marginmind_biz_id') ? Number(localStorage.getItem('marginmind_biz_id')) : 1
+  );
 
   useEffect(() => {
     // If no token exists, log in by default with seed demo credentials for immediate rich experience
@@ -46,12 +50,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('marginmind_role', data.role);
     localStorage.setItem('marginmind_name', data.full_name);
     if (data.business_name) localStorage.setItem('marginmind_biz', data.business_name);
+    if (data.industry_type) localStorage.setItem('marginmind_industry', data.industry_type);
+    if (data.business_id) localStorage.setItem('marginmind_biz_id', String(data.business_id));
 
     setToken(data.access_token);
     setRole(data.role as UserRole);
     setFullName(data.full_name);
     if (data.business_name) setBusinessName(data.business_name);
     if (data.industry_type) setIndustryType(data.industry_type);
+    if (data.business_id) setBusinessId(data.business_id);
   };
 
   const register = async (regData: any) => {
@@ -64,12 +71,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('marginmind_role', data.role);
     localStorage.setItem('marginmind_name', data.full_name);
     if (data.business_name) localStorage.setItem('marginmind_biz', data.business_name);
+    if (data.industry_type) localStorage.setItem('marginmind_industry', data.industry_type);
+    if (data.business_id) localStorage.setItem('marginmind_biz_id', String(data.business_id));
 
     setToken(data.access_token);
     setRole(data.role as UserRole);
     setFullName(data.full_name);
     setBusinessName(data.business_name);
     setIndustryType(data.industry_type);
+    if (data.business_id) setBusinessId(data.business_id);
   };
 
   const logout = () => {
@@ -77,17 +87,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('marginmind_role');
     localStorage.removeItem('marginmind_name');
     localStorage.removeItem('marginmind_biz');
+    localStorage.removeItem('marginmind_industry');
+    localStorage.removeItem('marginmind_biz_id');
     setToken(null);
   };
 
   const switchDemoRole = async (targetRole: UserRole) => {
-    const roleEmailMap: Record<UserRole, string> = {
-      business_owner: 'owner@apexforge.com',
-      finance_manager: 'finance@apexforge.com',
-      procurement_manager: 'procurement@apexforge.com',
-      production_manager: 'production@apexforge.com',
+    let domain = 'apexforge.com';
+    const ind = (industryType || '').toLowerCase();
+    if (ind.includes('textile') || ind.includes('garment') || ind.includes('apparel') || ind.includes('cloth')) {
+      domain = 'vardhmantextiles.com';
+    } else if (ind.includes('electronic') || ind.includes('smt') || ind.includes('pcba')) {
+      domain = 'sahasraelectronics.com';
+    } else if (ind.includes('food') || ind.includes('agro') || ind.includes('beverage')) {
+      domain = 'naturefreshfoods.com';
+    }
+
+    const rolePrefixMap: Record<UserRole, string> = {
+      business_owner: 'owner',
+      finance_manager: 'finance',
+      procurement_manager: 'procurement',
+      production_manager: 'production',
     };
-    await login(roleEmailMap[targetRole], 'password123');
+
+    const targetEmail = `${rolePrefixMap[targetRole] || 'owner'}@${domain}`;
+    await login(targetEmail, 'password123');
   };
 
   return (
@@ -98,6 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         fullName,
         businessName,
         industryType,
+        businessId,
         isAuthenticated: !!token,
         login,
         register,

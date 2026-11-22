@@ -82,27 +82,47 @@ class FinancialCalculationEngine:
         material_cost = float(material_cost_data.get("total_material_cost", 0.0))
         scrap_cost = float(material_cost_data.get("total_scrap_cost", 0.0))
 
-        labour_hours = float(production_costs.get("direct_labour_hours", 0.0))
-        labour_rate = float(production_costs.get("labour_rate_hourly", 0.0))
-        direct_labour_cost = labour_hours * labour_rate
+        # Direct Labour: Support Worker Headcount & Daily Wages (Apparel/Manufacturing Lines) or Hourly
+        worker_count = int(production_costs.get("worker_count", 0) or 0)
+        daily_wage = float(production_costs.get("wage_per_worker_daily", 0.0) or 0.0)
+        daily_output = float(production_costs.get("daily_output_units", 0.0) or 0.0)
 
-        machine_hours = float(production_costs.get("machine_hours", 0.0))
-        machine_rate = float(production_costs.get("machine_rate_hourly", 0.0))
+        if worker_count > 0 and daily_output > 0 and daily_wage > 0:
+            direct_labour_cost = (worker_count * daily_wage) / daily_output
+            labour_calc_method = f"{worker_count} workers @ ₹{daily_wage:,.0f}/day across {daily_output:,.0f} units/day"
+        else:
+            labour_hours = float(production_costs.get("direct_labour_hours", 0.0) or 0.0)
+            labour_rate = float(production_costs.get("labour_rate_hourly", 0.0) or 0.0)
+            direct_labour_cost = labour_hours * labour_rate
+            labour_calc_method = f"{labour_hours} hrs @ ₹{labour_rate}/hr"
+
+        # Additional processing & jobwork costs (Dyeing, Washing, Printing, QC, Consumables)
+        jobwork_cost = float(production_costs.get("processing_jobwork_cost_per_unit", 0.0) or 0.0)
+        qc_cost = float(production_costs.get("inspection_qc_cost_per_unit", 0.0) or 0.0)
+        consumables_cost = float(production_costs.get("consumables_cost_per_unit", 0.0) or 0.0)
+        boiler_cost = float(production_costs.get("boiler_steam_fuel_per_unit", 0.0) or 0.0)
+
+        machine_hours = float(production_costs.get("machine_hours", 0.0) or 0.0)
+        machine_rate = float(production_costs.get("machine_rate_hourly", 0.0) or 0.0)
         machine_overhead = machine_hours * machine_rate
 
-        energy_kwh = float(production_costs.get("energy_kwh", 0.0))
-        energy_rate = float(production_costs.get("energy_rate_kwh", 0.0))
-        energy_cost = energy_kwh * energy_rate
+        energy_kwh = float(production_costs.get("energy_kwh", 0.0) or 0.0)
+        energy_rate = float(production_costs.get("energy_rate_kwh", 0.0) or 0.0)
+        electric_energy_cost = energy_kwh * energy_rate
 
-        fixed_overhead = float(production_costs.get("fixed_overhead_per_unit", 0.0))
-        freight_packaging = float(production_costs.get("packaging_freight_per_unit", 0.0))
+        fixed_overhead = float(production_costs.get("fixed_overhead_per_unit", 0.0) or 0.0)
+        freight_packaging = float(production_costs.get("packaging_freight_per_unit", 0.0) or 0.0)
 
         # Total Production Unit Cost
         total_unit_cost = (
             material_cost +
             direct_labour_cost +
+            jobwork_cost +
+            qc_cost +
+            consumables_cost +
+            boiler_cost +
             machine_overhead +
-            energy_cost +
+            electric_energy_cost +
             fixed_overhead +
             freight_packaging
         )
@@ -121,7 +141,16 @@ class FinancialCalculationEngine:
         material_cost_share = (material_cost / total_unit_cost * 100.0) if total_unit_cost > 0 else 0.0
 
         # Contribution Margin (Selling Price minus Variable Costs: Material, Labour, Energy, Freight)
-        variable_costs = material_cost + direct_labour_cost + energy_cost + freight_packaging
+        variable_costs = (
+            material_cost +
+            direct_labour_cost +
+            jobwork_cost +
+            qc_cost +
+            consumables_cost +
+            boiler_cost +
+            electric_energy_cost +
+            freight_packaging
+        )
         unit_contribution = selling_price - variable_costs
         contribution_margin_ratio = (unit_contribution / selling_price) if selling_price > 0 else 0.0
 
@@ -135,8 +164,16 @@ class FinancialCalculationEngine:
             "material_cost": round(material_cost, 2),
             "scrap_cost": round(scrap_cost, 2),
             "labour_cost": round(direct_labour_cost, 2),
+            "labour_calc_method": labour_calc_method,
+            "worker_count": worker_count,
+            "wage_per_worker_daily": round(daily_wage, 2),
+            "daily_output_units": round(daily_output, 2),
+            "processing_jobwork_cost": round(jobwork_cost, 2),
+            "inspection_qc_cost": round(qc_cost, 2),
+            "consumables_cost": round(consumables_cost, 2),
+            "boiler_steam_fuel": round(boiler_cost, 2),
             "machine_overhead": round(machine_overhead, 2),
-            "energy_cost": round(energy_cost, 2),
+            "energy_cost": round(electric_energy_cost, 2),
             "fixed_overhead": round(fixed_overhead, 2),
             "freight_packaging_cost": round(freight_packaging, 2),
             "total_unit_cost": round(total_unit_cost, 2),

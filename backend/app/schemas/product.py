@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 from pydantic import BaseModel
 from backend.app.schemas.material import MaterialOut
@@ -55,6 +55,14 @@ class ProductionCostBase(BaseModel):
     energy_rate_kwh: float = 8.0
     fixed_overhead_per_unit: float = 150.0
     packaging_freight_per_unit: float = 50.0
+    worker_count: int = 1
+    wage_per_worker_daily: float = 500.0
+    daily_output_units: float = 100.0
+    processing_jobwork_cost_per_unit: float = 0.0
+    inspection_qc_cost_per_unit: float = 0.0
+    consumables_cost_per_unit: float = 0.0
+    boiler_steam_fuel_per_unit: float = 0.0
+    cost_breakdown_json: Optional[Dict[str, Any]] = None
 
 
 class ProductionCostCreate(ProductionCostBase):
@@ -112,6 +120,15 @@ class ProductCostBreakdown(BaseModel):
     critical_margin_threshold: float
     margin_health: str  # HEALTHY, WARNING, CRITICAL
     material_cost_share_percent: float
+    # Detailed worker & processing costs
+    labour_calc_method: Optional[str] = None
+    worker_count: Optional[int] = 1
+    wage_per_worker_daily: Optional[float] = 0.0
+    daily_output_units: Optional[float] = 0.0
+    processing_jobwork_cost: Optional[float] = 0.0
+    inspection_qc_cost: Optional[float] = 0.0
+    consumables_cost: Optional[float] = 0.0
+    boiler_steam_fuel: Optional[float] = 0.0
 
 
 class ProductOut(ProductBase):

@@ -66,7 +66,7 @@ export const Suppliers: React.FC = () => {
   }
 
   return (
-    <div className="p-8 space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-[1600px] mx-auto animate-fadeIn">
       {/* Header */}
       <div className="pb-6 border-b border-slate-800 flex items-center justify-between">
         <div>
@@ -84,7 +84,7 @@ export const Suppliers: React.FC = () => {
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center space-x-1.5 px-3.5 py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold rounded-lg shadow-sm transition"
+          className="flex items-center space-x-1.5 px-3.5 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 text-xs font-bold rounded-xl shadow-glow-emerald transition"
         >
           <Plus className="w-4 h-4" />
           <span>New Supplier</span>
@@ -96,7 +96,7 @@ export const Suppliers: React.FC = () => {
         {suppliers.map((s) => (
           <div
             key={s.id}
-            className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm space-y-4 hover:border-slate-700 transition"
+            className="glass-panel rounded-2xl p-5 shadow-sm space-y-4 hover:border-slate-700 transition"
           >
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>

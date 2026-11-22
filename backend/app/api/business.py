@@ -82,3 +82,179 @@ def create_business_user(
     db.commit()
     db.refresh(new_user)
     return new_user
+
+
+@router.get("/locations")
+def list_available_locations():
+    """Lists pre-configured Indian manufacturing clusters with wage benchmarks and freight rates."""
+    from backend.app.core.location_benchmarks import list_location_hubs
+    return list_location_hubs()
+
+
+@router.get("/location")
+def get_current_business_location(
+    tenant_id: int = Depends(get_current_tenant),
+    db: Session = Depends(get_db)
+):
+    """Returns current enterprise manufacturing location hub and regional cost assumptions."""
+    from backend.app.core.location_benchmarks import get_location_hub
+    biz = db.query(Business).filter(Business.id == tenant_id).first()
+    if not biz:
+        raise HTTPException(status_code=404, detail="Business not found")
+    hub = get_location_hub(biz.location_hub or "PUNE_MIDC")
+    return {
+        "business_id": biz.id,
+        "business_name": biz.name,
+        "address": biz.address,
+        "location_hub_id": biz.location_hub,
+        "location_hub": hub,
+        "regional_wage_benchmark": hub.get("daily_wage_benchmark", 750.0),
+        "freight_basis_per_kg": hub.get("freight_basis_per_kg", 2.0)
+    }
+
+
+@router.put("/location")
+def update_business_location(
+    data: Dict[str, Any],
+    tenant_id: int = Depends(get_current_tenant),
+    current_user: User = Depends(require_role([UserRole.BUSINESS_OWNER, UserRole.FINANCE_MANAGER])),
+    db: Session = Depends(get_db)
+):
+    """
+    Updates enterprise manufacturing location hub and optionally calibrates
+    worker wages across all products to match the new location's wage benchmark.
+    """
+    from backend.app.core.location_benchmarks import get_location_hub
+    from backend.app.models import ProductionCost
+    biz = db.query(Business).filter(Business.id == tenant_id).first()
+    if not biz:
+        raise HTTPException(status_code=404, detail="Business not found")
+
+    new_hub_id = data.get("location_hub")
+    if new_hub_id:
+        hub = get_location_hub(new_hub_id)
+        biz.location_hub = new_hub_id
+
+        if data.get("address"):
+            biz.address = data["address"]
+
+        # If calibrate_wages is true, update wage_per_worker_daily across all products
+        if data.get("calibrate_wages", True):
+            target_wage = float(data.get("custom_daily_wage") or hub.get("daily_wage_benchmark", 750.0))
+            costs = db.query(ProductionCost).filter(ProductionCost.business_id == tenant_id).all()
+            for c in costs:
+                c.wage_per_worker_daily = target_wage
+
+        db.commit()
+        db.refresh(biz)
+        return {
+            "status": "success",
+            "message": f"Manufacturing hub updated to {hub['name']}",
+            "location_hub": hub,
+            "business": {
+                "id": biz.id,
+                "name": biz.name,
+                "location_hub": biz.location_hub,
+                "address": biz.address
+            }
+        }
+    raise HTTPException(status_code=400, detail="location_hub is required")
+
+
+@router.get("/opex")
+def get_plant_opex(
+    tenant_id: int = Depends(get_current_tenant),
+    db: Session = Depends(get_db)
+):
+    """
+    Returns the company's plant-level operating expenses (Rent, Water, Power, Admin)
+    and per-unit overhead absorption calculation.
+    """
+    biz = db.query(Business).filter(Business.id == tenant_id).first()
+    if not biz:
+        raise HTTPException(status_code=404, detail="Business not found")
+
+    settings = biz.settings_json or {}
+    opex = settings.get("plant_opex", {
+        "monthly_rent": 120000.0,
+        "monthly_water_bill": 18000.0,
+        "monthly_electricity_bill": 75000.0,
+        "monthly_maintenance_admin": 45000.0,
+        "monthly_production_units": 8000.0,
+    })
+
+    total_monthly = (
+        float(opex.get("monthly_rent", 0)) +
+        float(opex.get("monthly_water_bill", 0)) +
+        float(opex.get("monthly_electricity_bill", 0)) +
+        float(opex.get("monthly_maintenance_admin", 0))
+    )
+    units = max(float(opex.get("monthly_production_units", 1)), 1.0)
+    unit_overhead = round(total_monthly / units, 2)
+
+    return {
+        "plant_opex": opex,
+        "total_monthly_expenses": round(total_monthly, 2),
+        "monthly_production_units": units,
+        "calculated_unit_overhead": unit_overhead,
+        "currency": biz.currency or "INR"
+    }
+
+
+@router.put("/opex")
+def update_plant_opex(
+    data: Dict[str, Any],
+    tenant_id: int = Depends(get_current_tenant),
+    current_user: User = Depends(require_role([UserRole.BUSINESS_OWNER, UserRole.FINANCE_MANAGER])),
+    db: Session = Depends(get_db)
+):
+    """
+    Updates the plant monthly bills (Rent, Water, Electricity, Admin)
+    and optionally distributes the resulting unit overhead across all products.
+    """
+    from backend.app.models import ProductionCost
+    biz = db.query(Business).filter(Business.id == tenant_id).first()
+    if not biz:
+        raise HTTPException(status_code=404, detail="Business not found")
+
+    settings = dict(biz.settings_json or {})
+    opex = {
+        "monthly_rent": float(data.get("monthly_rent", 0)),
+        "monthly_water_bill": float(data.get("monthly_water_bill", 0)),
+        "monthly_electricity_bill": float(data.get("monthly_electricity_bill", 0)),
+        "monthly_maintenance_admin": float(data.get("monthly_maintenance_admin", 0)),
+        "monthly_production_units": max(float(data.get("monthly_production_units", 1)), 1.0),
+    }
+
+    total_monthly = (
+        opex["monthly_rent"] +
+        opex["monthly_water_bill"] +
+        opex["monthly_electricity_bill"] +
+        opex["monthly_maintenance_admin"]
+    )
+    units = opex["monthly_production_units"]
+    unit_overhead = round(total_monthly / units, 2)
+    opex["calculated_unit_overhead"] = unit_overhead
+
+    settings["plant_opex"] = opex
+    biz.settings_json = settings
+
+    # If apply_to_products is True, update fixed_overhead_per_unit in all ProductionCosts
+    updated_prods = 0
+    if data.get("apply_to_products", True):
+        costs = db.query(ProductionCost).filter(ProductionCost.business_id == tenant_id).all()
+        for c in costs:
+            c.fixed_overhead_per_unit = unit_overhead
+            updated_prods += 1
+
+    db.commit()
+    db.refresh(biz)
+
+    return {
+        "status": "success",
+        "message": f"Plant OPEX updated. Unit overhead ₹{unit_overhead} allocated.",
+        "plant_opex": opex,
+        "total_monthly_expenses": round(total_monthly, 2),
+        "calculated_unit_overhead": unit_overhead,
+        "updated_products_count": updated_prods
+    }

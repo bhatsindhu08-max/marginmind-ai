@@ -107,3 +107,78 @@ def create_index_mapping(
     db.commit()
     db.refresh(mapping)
     return mapping
+
+
+@router.post("/sync-external-prices")
+def sync_external_material_prices(
+    tenant_id: int = Depends(get_current_tenant),
+    current_user = Depends(require_role([UserRole.FINANCE_MANAGER, UserRole.PROCUREMENT_MANAGER, UserRole.BUSINESS_OWNER])),
+    db: Session = Depends(get_db)
+):
+    """
+    Automated Market Intelligence Price Sync:
+    Fetches the latest official market observations (LME, MCX, WPI, World Bank)
+    for all indexed materials of the tenant, applies multiplier + regional location freight basis,
+    and updates current_market_price automatically.
+    """
+    from backend.app.models import Business, MarketObservation
+    from backend.app.core.location_benchmarks import get_location_hub
+
+    biz = db.query(Business).filter(Business.id == tenant_id).first()
+    hub = get_location_hub(biz.location_hub if biz else "PUNE_MIDC")
+    location_freight = hub.get("freight_basis_per_kg", 2.0)
+
+    materials = db.query(Material).filter(Material.business_id == tenant_id).all()
+    updated = []
+
+    for m in materials:
+        mapping = db.query(MaterialIndexMapping).filter(
+            MaterialIndexMapping.business_id == tenant_id,
+            MaterialIndexMapping.material_id == m.id
+        ).first()
+
+        if not mapping:
+            continue
+
+        latest_obs = (
+            db.query(MarketObservation)
+            .filter(MarketObservation.indicator_code == mapping.indicator_code)
+            .order_by(MarketObservation.observation_date.desc())
+            .first()
+        )
+
+        if not latest_obs:
+            continue
+
+        prev_price = m.current_market_price
+        freight_to_use = mapping.freight_basis if mapping.freight_basis > 0 else location_freight
+        new_price = round(
+            (latest_obs.value * mapping.multiplier) + mapping.basis_spread + freight_to_use,
+            2
+        )
+        change_pct = round(((new_price - prev_price) / prev_price * 100.0), 2) if prev_price > 0 else 0.0
+
+        m.current_market_price = new_price
+
+        updated.append({
+            "material_id": m.id,
+            "material_code": m.code,
+            "material_name": m.name,
+            "indicator_code": mapping.indicator_code,
+            "indicator_value": latest_obs.value,
+            "previous_market_price": prev_price,
+            "new_market_price": new_price,
+            "change_percent": change_pct,
+            "location_hub": hub["name"],
+            "formula_applied": f"({latest_obs.value} × {mapping.multiplier}) + {mapping.basis_spread} + ₹{freight_to_use} freight"
+        })
+
+    db.commit()
+    return {
+        "status": "success",
+        "tenant_id": tenant_id,
+        "location_hub": hub["name"],
+        "regional_freight_basis": location_freight,
+        "synced_count": len(updated),
+        "updated_materials": updated
+    }

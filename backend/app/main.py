@@ -1,8 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.core.config import settings
-from backend.app.core.database import engine, Base, SessionLocal
+from backend.app.core.database import engine, Base, SessionLocal, upgrade_database_schema
 from backend.app.seeds.metal_demo import seed_metal_demonstration
+from backend.app.seeds.textile_demo import seed_textile_demonstration
+from backend.app.seeds.electronics_demo import seed_electronics_demonstration
+from backend.app.seeds.food_demo import seed_food_demonstration
 
 # Routers
 from backend.app.api.auth import router as auth_router
@@ -43,13 +46,17 @@ app.add_middleware(
 
 @app.on_event("startup")
 def on_startup():
-    # 1. Create DB tables
+    # 1. Create DB tables & upgrade columns if needed
     Base.metadata.create_all(bind=engine)
+    upgrade_database_schema(engine)
 
-    # 2. Seed initial demonstration dataset
+    # 2. Seed initial demonstration datasets for all 4 manufacturing industries
     db = SessionLocal()
     try:
         seed_metal_demonstration(db)
+        seed_textile_demonstration(db)
+        seed_electronics_demonstration(db)
+        seed_food_demonstration(db)
     finally:
         db.close()
 

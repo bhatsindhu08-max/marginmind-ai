@@ -34,7 +34,8 @@ export async function apiRequest<T>(
   if (!response.ok) {
     let errorDetail = `Request failed with status ${response.status}`;
     try {
-      const text = await response.text();
+      const clone = response.clone();
+      const text = await clone.text();
       try {
         const errJson = JSON.parse(text);
         errorDetail = errJson.detail || errorDetail;
@@ -44,7 +45,8 @@ export async function apiRequest<T>(
         }
       }
     } catch {
-      // Stream consumed
+      // Stream or clone consumed, fallback to status text
+      errorDetail = response.statusText || `Request failed with status ${response.status}`;
     }
     throw new Error(errorDetail);
   }

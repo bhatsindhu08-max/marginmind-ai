@@ -61,7 +61,7 @@ export const Reports: React.FC = () => {
   ];
 
   return (
-    <div className="p-8 space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-[1600px] mx-auto animate-fadeIn">
       {/* Header */}
       <div className="pb-6 border-b border-slate-800 flex items-center justify-between">
         <div>
@@ -91,7 +91,7 @@ export const Reports: React.FC = () => {
         {reportPacks.map((pack) => (
           <div
             key={pack.id}
-            className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm flex flex-col justify-between space-y-4 hover:border-slate-700 transition"
+            className="glass-panel rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-4 hover:border-slate-700 transition"
           >
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -130,7 +130,7 @@ export const Reports: React.FC = () => {
       </div>
 
       {/* Epistemic Governance & Methodology Banner */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm space-y-3">
+      <div className="glass-panel rounded-2xl p-6 shadow-sm space-y-3">
         <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider font-mono flex items-center space-x-1.5">
           <ShieldCheck className="w-4 h-4 text-emerald-400" />
           <span>Report Governance & Methodology Declaration</span>

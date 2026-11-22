@@ -12,12 +12,12 @@ client = TestClient(app)
 def setup_second_tenant():
     db = SessionLocal()
     try:
-        # Create second business: TextileCraft
-        biz2 = db.query(Business).filter(Business.name == "TextileCraft India Pvt Ltd").first()
+        # Create second business: Isolated Test Enterprise
+        biz2 = db.query(Business).filter(Business.name == "Isolated Test Enterprise").first()
         if not biz2:
             biz2 = Business(
-                name="TextileCraft India Pvt Ltd",
-                slug="textilecraft-india",
+                name="Isolated Test Enterprise",
+                slug="isolated-test-enterprise",
                 industry_type="textile_garments",
                 currency="INR",
                 address="Surat, Gujarat, India"
@@ -26,13 +26,13 @@ def setup_second_tenant():
             db.commit()
             db.refresh(biz2)
 
-        # Create user for TextileCraft
-        user2 = db.query(User).filter(User.email == "owner@textilecraft.in").first()
+        # Create user for Isolated Test Enterprise
+        user2 = db.query(User).filter(User.email == "owner@isolatedenterprise.com").first()
         if not user2:
             user2 = User(
                 business_id=biz2.id,
-                email="owner@textilecraft.in",
-                full_name="Rajesh Textile Owner",
+                email="owner@isolatedenterprise.com",
+                full_name="Rajesh Isolation Owner",
                 hashed_password=get_password_hash("textilepass123"),
                 role="business_owner",
                 is_active=True
@@ -41,7 +41,7 @@ def setup_second_tenant():
             db.commit()
             db.refresh(user2)
 
-        return {"business_id": biz2.id, "email": "owner@textilecraft.in", "password": "textilepass123"}
+        return {"business_id": biz2.id, "email": "owner@isolatedenterprise.com", "password": "textilepass123"}
     finally:
         db.close()
 

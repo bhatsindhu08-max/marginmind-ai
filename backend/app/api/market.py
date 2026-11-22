@@ -18,10 +18,11 @@ router = APIRouter(prefix="/market", tags=["External Market Intelligence"])
 
 @router.get("/summary")
 def get_market_summary(
+    tenant_id: int = Depends(get_current_tenant),
     db: Session = Depends(get_db)
 ):
     service = MarketIntelligenceService(db)
-    return service.get_latest_indicators_summary()
+    return service.get_latest_indicators_summary(business_id=tenant_id)
 
 
 @router.get("/history/{indicator_code}")

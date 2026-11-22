@@ -37,7 +37,7 @@ export const Onboarding: React.FC = () => {
   const activeTemplate = templates.find((t) => t.id === selectedTemplate) || templates[0];
 
   return (
-    <div className="p-8 space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-[1600px] mx-auto animate-fadeIn">
       {/* Header */}
       <div className="pb-6 border-b border-slate-800 flex items-center justify-between">
         <div>
@@ -93,7 +93,7 @@ export const Onboarding: React.FC = () => {
 
       {/* Selected Template Deep-Dive Configuration */}
       {activeTemplate && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm space-y-6">
+        <div className="glass-panel rounded-2xl p-6 shadow-sm space-y-6">
           <div className="border-b border-slate-800 pb-4">
             <span className="text-xs font-mono text-emerald-400 uppercase">Selected Template Schema:</span>
             <h2 className="text-lg font-bold text-slate-100 mt-1">{activeTemplate.name}</h2>
