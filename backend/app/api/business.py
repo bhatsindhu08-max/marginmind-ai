@@ -214,6 +214,7 @@ def get_plant_opex(
         "total_monthly_expenses": round(total_monthly, 2),
         "monthly_production_units": units,
         "calculated_unit_overhead": unit_overhead,
+        "working_capital_reserves": float(settings.get("working_capital_reserves", 500000.0)),
         "currency": biz.currency or "INR"
     }
 
@@ -235,9 +236,13 @@ def update_plant_opex(
         raise HTTPException(status_code=404, detail="Business not found")
 
     settings = dict(biz.settings_json or {})
+    if "working_capital_reserves" in data and data["working_capital_reserves"] is not None:
+        settings["working_capital_reserves"] = float(data["working_capital_reserves"])
+
     opex = {
-        "monthly_rent": float(data.get("monthly_rent", 0)),
+        "monthly_rent": float(data.get("monthly_rent", opex.get("monthly_rent", 120000.0) if "opex" in locals() else 120000.0)),
         "monthly_water_bill": float(data.get("monthly_water_bill", 0)),
+
         "monthly_electricity_bill": float(data.get("monthly_electricity_bill", 0)),
         "monthly_maintenance_admin": float(data.get("monthly_maintenance_admin", 0)),
         "monthly_production_units": max(float(data.get("monthly_production_units", 1)), 1.0),

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { apiRequest } from '../api/client';
 import { StatusBadge } from '../components/StatusBadge';
+import { OrderViabilityAdvisor } from '../components/OrderViabilityAdvisor';
 import { FileText, Upload, CheckCircle2, AlertTriangle, FileSpreadsheet, Eye, Edit3, X } from 'lucide-react';
 
 export const DocumentUpload: React.FC = () => {
@@ -116,6 +117,9 @@ export const DocumentUpload: React.FC = () => {
           </p>
         </div>
       </div>
+
+      {/* CORE ADVISOR: INSTANT DOCUMENT PROFITABILITY & KEEP/DROP ADVISOR */}
+      <OrderViabilityAdvisor onOrderAccepted={loadDocuments} className="mb-6" />
 
       {/* Drag & Drop Upload Card */}
       <div className="glass-panel rounded-2xl p-8 shadow-sm">

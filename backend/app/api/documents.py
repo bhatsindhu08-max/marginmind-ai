@@ -1,13 +1,14 @@
 import os
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone, timedelta
 from backend.app.core.config import settings
 from backend.app.core.database import get_db
 from backend.app.models import Document, Supplier, SupplierQuotation, Material, PreparedDecision
 from backend.app.schemas.document import DocumentOut, DocumentCorrectionUpdate
 from backend.app.services.document_parser import DocumentIntelligenceParser
+from backend.app.services.order_viability_service import OrderViabilityService
 from backend.app.api.deps import get_current_user, get_current_tenant
 
 router = APIRouter(prefix="/documents", tags=["Document Intelligence & Ingestion"])
@@ -35,6 +36,12 @@ async def upload_document(
     elif parse_result.get("review_required", False):
         doc_status = "REVIEW_REQUIRED"
 
+    # Automatically compute order profitability, spend breakdown, cash runway, and future price risk!
+    viability_service = OrderViabilityService(db, tenant_id)
+    viability_data = viability_service.evaluate_from_document_records(
+        records=parse_result.get("records", [])
+    )
+
     doc = Document(
         business_id=tenant_id,
         filename=file.filename,
@@ -42,7 +49,10 @@ async def upload_document(
         document_type=document_type,
         file_size=len(file_bytes),
         status=doc_status,
-        extracted_data_json={"records": parse_result.get("records", [])},
+        extracted_data_json={
+            "records": parse_result.get("records", []),
+            "viability": viability_data
+        },
         confidence_scores_json=parse_result.get("confidence_scores", {}),
         provenance_data_json=parse_result.get("provenance_data", {}),
         error_message=parse_result.get("error")
@@ -51,6 +61,28 @@ async def upload_document(
     db.commit()
     db.refresh(doc)
     return doc
+
+
+@router.get("/{document_id}/viability")
+def get_document_viability(
+    document_id: int,
+    available_cash: Optional[float] = None,
+    future_price_shock_pct: float = 0.0,
+    tenant_id: int = Depends(get_current_tenant),
+    db: Session = Depends(get_db)
+):
+    doc = db.query(Document).filter(Document.id == document_id, Document.business_id == tenant_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    records = (doc.extracted_data_json or {}).get("records", [])
+    viability_service = OrderViabilityService(db, tenant_id)
+    return viability_service.evaluate_from_document_records(
+        records=records,
+        available_cash=available_cash,
+        future_price_shock_pct=future_price_shock_pct
+    )
+
 
 
 @router.get("", response_model=List[DocumentOut])
@@ -72,8 +104,15 @@ def correct_and_confirm_document(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    # Update extracted data with human correction
-    doc.extracted_data_json = data.corrected_data
+    # Update extracted data with human correction and re-compute viability
+    corrected_records = (data.corrected_data or {}).get("records", [])
+    viability_service = OrderViabilityService(db, tenant_id)
+    viability_data = viability_service.evaluate_from_document_records(records=corrected_records)
+
+    doc.extracted_data_json = {
+        **(data.corrected_data or {}),
+        "viability": viability_data
+    }
     doc.status = "CONFIRMED" if data.confirm_and_apply else "EXTRACTED"
     doc.confidence_scores_json = {"overall": 1.0, "status": "Human Verified"}
 

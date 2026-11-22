@@ -3,6 +3,7 @@ import { apiRequest } from '../api/client';
 import { useAuth } from '../contexts/AuthContext';
 import { MetricCard } from '../components/MetricCard';
 import { StatusBadge } from '../components/StatusBadge';
+import { OrderViabilityAdvisor } from '../components/OrderViabilityAdvisor';
 import {
   Package,
   ShieldAlert,
@@ -203,6 +204,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         {/* Ambient background glow */}
         <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
       </div>
+
+      {/* CORE HERO TOOL: INSTANT ORDER & DOCUMENT PROFITABILITY EVALUATOR */}
+      <OrderViabilityAdvisor onOrderAccepted={loadDashboardData} />
 
       {/* SECTION 1: CORE EXECUTIVE KPIS (Directly inspired by Reference Images 1 & 2) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
